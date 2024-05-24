@@ -13,7 +13,7 @@ dest_files=["res://.godot/imported/killerbeanworkingcopy.glb-94bce9626a347bd0282
 
 [params]
 
-nodes/root_type="CharacterBody3D"
+nodes/root_type="Node3D"
 nodes/root_name="KillerBean"
 nodes/apply_root_scale=true
 nodes/root_scale=1.0
@@ -25,7 +25,7 @@ meshes/lightmap_texel_size=0.2
 meshes/force_disable_compression=false
 skins/use_named_skins=true
 animation/import=true
-animation/fps=30
+animation/fps=60.0
 animation/trimming=false
 animation/remove_immutable_tracks=true
 import_script/path=""
