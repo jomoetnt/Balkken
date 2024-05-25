@@ -20,11 +20,11 @@ var actionableTimer = 0
 var player = 1
 
 var moves = {
-	"Nothing": commandMove.new(0, 0, 0),
-	"Jump": commandMove.new(PREJUMP_FRAMES, 0, 0),
-	"Jump Land": commandMove.new(0, 0, LAND_FRAMES),
-	"Light Punch": commandMove.new(0, 0, 0),
-	"Heavy Punch": commandMove.new(0, 0, 0) 
+	"Nothing": commandMove.new(0, 0, 0, "BlendSpace1D"),
+	"Jump": commandMove.new(PREJUMP_FRAMES, 0, 0, "jump"),
+	"Jump Land": commandMove.new(0, 0, LAND_FRAMES, "jump_land"),
+	"Light Punch": commandMove.new(0, 0, 0, "light_punch"),
+	"Heavy Punch": commandMove.new(0, 0, 0, "heavy_punch") 
 }
 
 enum direction {UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, NEUTRAL}
@@ -40,13 +40,11 @@ signal inputSignal(inputString)
 class motionInput:
 	var inputDirection:direction
 	var inputButton:button
-	var lifetime:int
+	# How many frames ago the input was made, used for input buffering and rollback
+	var lifetime = 0
 	func _init(inputDir:direction, inputBtn:button):
 		inputDirection = inputDir
 		inputButton = inputBtn
-		lifetime = determine_lifetime()
-	func determine_lifetime():
-		return 30
 	func _to_string():
 		if inputButton != button.NONE:
 			return direction.keys()[inputDirection] + " + " + button.keys()[inputButton]
@@ -54,16 +52,22 @@ class motionInput:
 			return direction.keys()[inputDirection]
 		return ""
 		
-
 class commandMove:
-	var commandInputs = []
-	var startupFrames = 0
-	var activeFrames = 0
+	# Order of inputs matters
+	var commandInputs:Array[motionInput]
+	var startupFrames:int
+	var activeFrames:int
 	var recoveryFrames:int
-	func _init(startup:int, active:int, recovery:int):
+	var animationName:StringName
+	# Used for whatever information needs to be stored about a move, e.g. how charged
+	var data
+	func _init(startup:int, active:int, recovery:int, name:StringName):
 		startupFrames = startup
 		activeFrames = active
 		recoveryFrames = recovery
+		animationName = name
+	func get_duration():
+		return startupFrames + activeFrames + recoveryFrames
 
 func _physics_process(delta):
 	# Add the gravity.
@@ -72,39 +76,7 @@ func _physics_process(delta):
 
 	updateState()
 		
-	# Get the input direction
-	var input_dir:Vector2
-	if player == 1:
-		input_dir = Input.get_vector("p1_left", "p1_right", "p1_down", "p1_up")
-	else:
-		input_dir = Input.get_vector("p2_left", "p2_right", "p2_down", "p2_up")
-	
-	if input_dir.x > 0.5:
-		if input_dir.y < -0.5:
-			curDir = direction.DOWNRIGHT
-		elif input_dir.y > 0.5:
-			curDir = direction.UPRIGHT
-		else:
-			curDir = direction.RIGHT
-	elif input_dir.x < -0.5:
-		if input_dir.y < -0.5:
-			curDir = direction.DOWNLEFT
-		elif input_dir.y > 0.5:
-			curDir = direction.UPLEFT
-		else:
-			curDir = direction.LEFT
-	else:
-		if input_dir.y < -0.5:
-			curDir = direction.DOWN
-		elif input_dir.y > 0.5:
-			curDir = direction.UP
-		else:
-			curDir = direction.NEUTRAL
-	
-	curBtn = parse_btn()
-	
-	var curInput = motionInput.new(curDir, curBtn)
-	process_input(curInput, WALK_SPEED * input_dir.x)
+	process_input()
 	
 	move_and_slide()
 
@@ -117,6 +89,9 @@ func updateState():
 		
 	if actionableTimer == 0:
 		actionable = true
+		if curMove == moves["Jump"]:
+			velocity.y = JUMP_VELOCITY
+			velocity.x = curMove.data
 		curMove = moves["Nothing"]
 	
 	if anim_state.get_current_node() == "jump" and isAnimationFinished():
@@ -130,21 +105,10 @@ func updateState():
 		
 	if anim_state.get_current_node() == "jump_idle" and is_on_floor():
 		land()
-
-func jump(xDirection):
-	velocity.y = JUMP_VELOCITY
-	velocity.x = xDirection * WALK_SPEED * 2
-	curMove = moves["Jump"]
-	actionable = false
-	actionableTimer = curMove.startupFrames
-	anim_state.travel("jump")
 	
 func land():
-	anim_state.travel("jump_land")
 	velocity.x = 0
-	curMove = moves["Jump Land"]
-	actionableTimer = curMove.recoveryFrames
-	actionable = false
+	execute_move("Jump Land")
 	
 func crouch():
 	velocity.x = 0
@@ -168,32 +132,20 @@ func handle_movement(motInput:motionInput, speed):
 		direction.RIGHT, direction.LEFT:
 			if curMove == moves["Nothing"]:
 				walk(speed)
-		direction.UPLEFT:
-			if curMove == moves["Nothing"]:
-				jump(-1)
-		direction.UP:
-			if curMove == moves["Nothing"]:
-				jump(0)
-		direction.UPRIGHT:
-			if curMove == moves["Nothing"]:
-				jump(1)
+		direction.UPLEFT, direction.UP, direction.UPRIGHT:
+			if curMove == moves["Nothing"] and anim_state.get_current_node() != "jump" and anim_state.get_current_node() != "jump_idle":
+				execute_move("Jump")
+				curMove.data = speed * 2
 		direction.DOWNLEFT, direction.DOWN, direction.DOWNRIGHT:
 			if curMove == moves["Nothing"] and anim_state.get_current_node() != "crouch_idle" and anim_state.get_current_node() != "crouch":
 				crouch()
 
 func execute_move(move:StringName):
 	velocity.x = 0
-	match move:
-		"heavy_punch":
-			anim_state.travel("heavy_punch")
-			curMove = moves["Heavy Punch"]
-			actionable = false
-			actionableTimer = curMove.recoveryFrames
-		"light_punch":
-			anim_state.travel("light_punch")
-			curMove = moves["Light Punch"]
-			actionable = false
-			actionableTimer = curMove.recoveryFrames
+	curMove = moves[move]
+	anim_state.travel(curMove.animationName)
+	actionable = false
+	actionableTimer = curMove.get_duration()
 
 func parse_btn():
 	if player == 1:
@@ -216,23 +168,56 @@ func parse_btn():
 			return button.LIGHT_PUNCH
 	return button.NONE
 
-func process_input(motInput:motionInput, speed):
-	inputSignal.emit(str(motInput))
+func process_input():
+	var input_dir:Vector2
+	if player == 1:
+		input_dir = Input.get_vector("p1_left", "p1_right", "p1_down", "p1_up")
+	else:
+		input_dir = Input.get_vector("p2_left", "p2_right", "p2_down", "p2_up")
+	
+	curBtn = parse_btn()
+	
+	var curInput = motionInput.new(curDir, curBtn)
+	
+	if input_dir.x > 0.5:
+		if input_dir.y < -0.5:
+			curDir = direction.DOWNRIGHT
+		elif input_dir.y > 0.5:
+			curDir = direction.UPRIGHT
+		else:
+			curDir = direction.RIGHT
+	elif input_dir.x < -0.5:
+		if input_dir.y < -0.5:
+			curDir = direction.DOWNLEFT
+		elif input_dir.y > 0.5:
+			curDir = direction.UPLEFT
+		else:
+			curDir = direction.LEFT
+	else:
+		if input_dir.y < -0.5:
+			curDir = direction.DOWN
+		elif input_dir.y > 0.5:
+			curDir = direction.UP
+		else:
+			curDir = direction.NEUTRAL
+			
+	inputSignal.emit(str(curInput))
+	
 	if !actionable:
-		inputBuffer.append(motInput)
+		inputBuffer.append(curInput)
 		return
 	for input in inputBuffer:
-		input.lifetime -= 1
-		if input.lifetime <= 0:
+		input.lifetime += 1
+		if input.lifetime >= 30:
 			inputBuffer.erase(input)
 	
-	match motInput.inputButton:
+	match curInput.inputButton:
 		button.NONE:
 			if anim_state.get_current_node() != "jump_idle" and anim_state.get_current_node() != "jump":
-				handle_movement(motInput, speed)
+				handle_movement(curInput, WALK_SPEED * input_dir.x)
 		button.HEAVY_PUNCH:
 			if anim_state.get_current_node() != "jump_idle":
-				execute_move("heavy_punch")
+				execute_move("Heavy Punch")
 		button.LIGHT_PUNCH:
 			if anim_state.get_current_node() != "jump_idle":
-				execute_move("light_punch")
+				execute_move("Light Punch")
