@@ -1,3 +1,3 @@
-extends "res://scripts/fighters/fighter.gd"
+class_name KillerBeanFighter extends "fighter.gd"
 
 
