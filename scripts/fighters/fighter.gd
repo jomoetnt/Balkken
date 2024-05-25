@@ -14,11 +14,20 @@ var mana = 0
 
 var player = 1
 
-enum dirList {UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, NEUTRAL}
-enum btnList {light_punch, light_kick, heavy_punch, heavy_kick, enhance, throw, throw_swap, ultimate, start, ready, none}
+enum direction {UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, NEUTRAL}
+enum button {light_punch, light_kick, heavy_punch, heavy_kick, enhance, throw, throw_swap, ultimate, start, ready, none}
 enum universalMoves {light_punch, light_kick, heavy_punch, heavy_kick, throw, throw_swap, ultimate}
-var curDir = dirList.NEUTRAL
-var curBtn = btnList.none
+var curDir = direction.NEUTRAL
+var curBtn = button.none
+
+var inputBuffer = []
+
+class motionInput:
+	var inputDirection:direction
+	var inputButton:button
+	func _init(inputDir:direction, inputBtn:button):
+		inputDirection = inputDir
+		inputButton = inputBtn
 
 func _physics_process(delta):
 	# Add the gravity.
@@ -35,29 +44,30 @@ func _physics_process(delta):
 	
 	if input_dir.x > 0.5:
 		if input_dir.y < -0.5:
-			curDir = dirList.DOWNRIGHT
+			curDir = direction.DOWNRIGHT
 		elif input_dir.y > 0.5:
-			curDir = dirList.UPRIGHT
+			curDir = direction.UPRIGHT
 		else:
-			curDir = dirList.RIGHT
+			curDir = direction.RIGHT
 	elif input_dir.x < -0.5:
 		if input_dir.y < -0.5:
-			curDir = dirList.DOWNLEFT
+			curDir = direction.DOWNLEFT
 		elif input_dir.y > 0.5:
-			curDir = dirList.UPLEFT
+			curDir = direction.UPLEFT
 		else:
-			curDir = dirList.LEFT
+			curDir = direction.LEFT
 	else:
 		if input_dir.y < -0.5:
-			curDir = dirList.DOWN
+			curDir = direction.DOWN
 		elif input_dir.y > 0.5:
-			curDir = dirList.UP
+			curDir = direction.UP
 		else:
-			curDir = dirList.NEUTRAL
+			curDir = direction.NEUTRAL
 	
 	curBtn = parse_btn()
 	
-	process_input(curDir, SPEED * input_dir.x, curBtn)
+	var curInput = motionInput.new(curDir, curBtn)
+	process_input(curInput, SPEED * input_dir.x)
 
 	#Handles land
 	if anim_state.get_current_node() == "jump_idle" and is_on_floor():
@@ -95,58 +105,58 @@ func execute_move(move:StringName):
 func parse_btn():
 	if player == 1:
 		if Input.is_action_just_pressed("p1_heavy_kick"):
-			return btnList.heavy_kick
+			return button.heavy_kick
 		if Input.is_action_just_pressed("p1_light_kick"):
-			return btnList.light_kick
+			return button.light_kick
 		if Input.is_action_just_pressed("p1_heavy_punch"):
-			return btnList.heavy_punch
+			return button.heavy_punch
 		if Input.is_action_just_pressed("p1_light_punch"):
-			return btnList.light_punch
+			return button.light_punch
 	else:
 		if Input.is_action_just_pressed("p2_heavy_kick"):
-			return btnList.heavy_kick
+			return button.heavy_kick
 		if Input.is_action_just_pressed("p2_light_kick"):
-			return btnList.light_kick
+			return button.light_kick
 		if Input.is_action_just_pressed("p2_heavy_punch"):
-			return btnList.heavy_punch
+			return button.heavy_punch
 		if Input.is_action_just_pressed("p2_light_punch"):
-			return btnList.light_punch
-	return btnList.none
+			return button.light_punch
+	return button.none
 
-func process_input(dir:dirList, speed, btn:btnList):
+func process_input(motInput:motionInput, speed):
 	match dir:
-		dirList.UP:
+		direction.UP:
 			if anim_state.get_current_node() == "BlendSpace1D" || anim_state.get_current_node() == "crouch_idle":
 				jump()
-		dirList.UPRIGHT:
+		direction.UPRIGHT:
 			if anim_state.get_current_node() == "BlendSpace1D" || anim_state.get_current_node() == "crouch_idle":
 				velocity.x = speed * 2
 				jump()
-		dirList.UPLEFT:
+		direction.UPLEFT:
 			if anim_state.get_current_node() == "BlendSpace1D" || anim_state.get_current_node() == "crouch_idle":
 				velocity.x = speed * 2
 				jump()
-		dirList.DOWN:
+		direction.DOWN:
 			if anim_state.get_current_node() == "BlendSpace1D":
 				crouch()
-		dirList.DOWNLEFT:
+		direction.DOWNLEFT:
 			if anim_state.get_current_node() == "BlendSpace1D":
 				crouch()
-		dirList.DOWNRIGHT:
+		direction.DOWNRIGHT:
 			if anim_state.get_current_node() == "BlendSpace1D":
 				crouch()
-		dirList.LEFT:
+		direction.LEFT:
 			if anim_state.get_current_node() == "BlendSpace1D" || anim_state.get_current_node() == "crouch_idle":
 				walk(speed)
-		dirList.RIGHT:
+		direction.RIGHT:
 			if anim_state.get_current_node() == "BlendSpace1D" || anim_state.get_current_node() == "crouch_idle":
 				walk(speed)
-		dirList.NEUTRAL:
+		direction.NEUTRAL:
 			match btn:
-				btnList.heavy_punch:
+				button.heavy_punch:
 					if anim_state.get_current_node() == "BlendSpace1D":
 						execute_move("heavy_punch")
-				btnList.light_punch:
+				button.light_punch:
 					if anim_state.get_current_node() == "BlendSpace1D":
 						execute_move("light_punch")
 				_:
