@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://b1pcpu1pgyter"]
+[gd_scene load_steps=6 format=3 uid="uid://b1pcpu1pgyter"]
 
 [ext_resource type="PackedScene" uid="uid://dk1fcb0gq8nsf" path="res://scenes/fighters/killer_bean.tscn" id="1_rip5a"]
+[ext_resource type="Script" path="res://scripts/UI/InputDisplay.gd" id="2_dortv"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_3a5gf"]
 size = Vector3(10, 1, 10)
@@ -21,7 +22,7 @@ transform = Transform3D(2.565, 0, 0, 0, 2.565, 0, 0, 0, 2.565, 0, -1.2977, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0, 1.996)
 mesh = SubResource("BoxMesh_3a5gf")
 
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="Floor"]
+[node name="FloorCollider" type="CollisionShape3D" parent="Floor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0, 1.996)
 shape = SubResource("ConvexPolygonShape3D_7xqbj")
 
@@ -33,9 +34,19 @@ near = 0.01
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.332688, 0.943037, 0, -0.943037, 0.332688, 0, 3.16903, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+[node name="Background" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.39561)
 mesh = SubResource("BoxMesh_u32yu")
 
 [node name="KillerBean" parent="." instance=ExtResource("1_rip5a")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.943001, 0)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="InputDisplay" type="Label" parent="UI"]
+offset_right = 713.0
+offset_bottom = 202.0
+theme_override_font_sizes/font_size = 26
+vertical_alignment = 2
+text_overrun_behavior = 2
+script = ExtResource("2_dortv")
