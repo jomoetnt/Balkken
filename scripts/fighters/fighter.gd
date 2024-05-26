@@ -75,24 +75,37 @@ func _physics_process(delta):
 		velocity.y -= gravity * delta
 
 	updateState()
-		
-	process_input()
 	
 	move_and_slide()
 
 func isAnimationFinished():
 	return anim_state.get_current_play_position() >= anim_state.get_current_length()
+
+func isJumping():
+	return anim_state.get_current_node() == "jump" or anim_state.get_current_node() == "jump_idle"
 	
 func updateState():
-	if actionableTimer > 0:
+	# The non-strict inequality here is intentional
+	if actionableTimer >= 0:
 		actionableTimer -= 1
 		
+	var bufferedInput = motionInput.new(direction.NEUTRAL, button.NONE)
+	
 	if actionableTimer == 0:
 		actionable = true
 		if curMove == moves["Jump"]:
 			velocity.y = JUMP_VELOCITY
 			velocity.x = curMove.data
 		curMove = moves["Nothing"]
+		
+	if actionableTimer == -1:
+		# Only the most recent bufferable input should be considered
+		for input in inputBuffer.slice(24, 29, 1, false):
+			if input.inputButton != button.NONE:
+				bufferedInput = input
+		actionableTimer = 0
+		
+	process_input(bufferedInput)
 	
 	if anim_state.get_current_node() == "jump" and isAnimationFinished():
 		anim_state.travel("jump_idle")
@@ -104,11 +117,7 @@ func updateState():
 		anim_state.travel("crouch_idle")
 		
 	if anim_state.get_current_node() == "jump_idle" and is_on_floor():
-		land()
-	
-func land():
-	velocity.x = 0
-	execute_move("Jump Land")
+		execute_move("Jump Land")
 	
 func crouch():
 	velocity.x = 0
@@ -147,6 +156,7 @@ func execute_move(move:StringName):
 	actionable = false
 	actionableTimer = curMove.get_duration()
 
+# This function non-trivially determines the priority system for inputs
 func parse_btn():
 	if player == 1:
 		if Input.is_action_just_pressed("p1_heavy_kick"):
@@ -168,7 +178,7 @@ func parse_btn():
 			return button.LIGHT_PUNCH
 	return button.NONE
 
-func process_input():
+func process_input(bufInput:motionInput):
 	var input_dir:Vector2
 	if player == 1:
 		input_dir = Input.get_vector("p1_left", "p1_right", "p1_down", "p1_up")
@@ -203,21 +213,25 @@ func process_input():
 			
 	inputSignal.emit(str(curInput))
 	
+	for input in inputBuffer:
+		if input.lifetime >= 30:
+			inputBuffer.erase(input)
+		input.lifetime += 1
+	
 	if !actionable:
 		inputBuffer.append(curInput)
 		return
-	for input in inputBuffer:
-		input.lifetime += 1
-		if input.lifetime >= 30:
-			inputBuffer.erase(input)
+	
+	if curInput.inputButton == button.NONE and bufInput.inputButton != button.NONE:
+		curInput = bufInput
 	
 	match curInput.inputButton:
 		button.NONE:
-			if anim_state.get_current_node() != "jump_idle" and anim_state.get_current_node() != "jump":
+			if !isJumping():
 				handle_movement(curInput, WALK_SPEED * input_dir.x)
 		button.HEAVY_PUNCH:
-			if anim_state.get_current_node() != "jump_idle":
+			if !isJumping():
 				execute_move("Heavy Punch")
 		button.LIGHT_PUNCH:
-			if anim_state.get_current_node() != "jump_idle":
+			if !isJumping():
 				execute_move("Light Punch")
