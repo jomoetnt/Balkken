@@ -1,15 +1,23 @@
-[gd_scene load_steps=6 format=3 uid="uid://b1pcpu1pgyter"]
+[gd_scene load_steps=8 format=3 uid="uid://b1pcpu1pgyter"]
 
 [ext_resource type="PackedScene" uid="uid://dk1fcb0gq8nsf" path="res://scenes/fighters/killer_bean.tscn" id="1_rip5a"]
 [ext_resource type="Script" path="res://scripts/UI/InputDisplay.gd" id="2_dortv"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fsuqa"]
+albedo_color = Color(0, 0, 0, 1)
+
 [sub_resource type="BoxMesh" id="BoxMesh_3a5gf"]
+material = SubResource("StandardMaterial3D_fsuqa")
 size = Vector3(10, 1, 10)
 
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_7xqbj"]
 points = PackedVector3Array(-5, -0.5, -5, -5, 0.5, -5, 5, -0.5, -5, -5, -0.5, 5, -5, 0.5, 5, 5, 0.5, -5, 5, -0.5, 5, 5, 0.5, 5)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ymuep"]
+albedo_color = Color(0, 0, 0, 1)
+
 [sub_resource type="BoxMesh" id="BoxMesh_u32yu"]
+material = SubResource("StandardMaterial3D_ymuep")
 size = Vector3(25.945, 18.91, 1)
 
 [node name="place" type="Node3D"]
@@ -32,7 +40,7 @@ fov = 48.3
 near = 0.01
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.332688, 0.943037, 0, -0.943037, 0.332688, 0, 3.16903, 0)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 3.16903, 0)
 
 [node name="Background" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.39561)
@@ -40,6 +48,10 @@ mesh = SubResource("BoxMesh_u32yu")
 
 [node name="KillerBean" parent="." instance=ExtResource("1_rip5a")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.943001, 0)
+
+[node name="KillerBean2" parent="." instance=ExtResource("1_rip5a")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, 1, 1.77682, 0.943001, 0)
+player = 2
 
 [node name="UI" type="CanvasLayer" parent="."]
 

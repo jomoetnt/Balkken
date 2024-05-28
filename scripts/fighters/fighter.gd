@@ -1,10 +1,10 @@
 class_name fighter extends CharacterBody3D
 
-const WALK_SPEED = 2.0
-const JUMP_VELOCITY = 4.5
-const PREJUMP_FRAMES = 5
-const LAND_FRAMES = 4
-const INPUT_BUFFER_SIZE = 7
+var WALK_SPEED = 2.0
+var JUMP_VELOCITY = 4.5
+var PREJUMP_FRAMES = 5
+var LAND_FRAMES = 4
+var INPUT_BUFFER_SIZE = 7
 
 # Get the gravity from the project settings to be synced with RigidBody nodes.
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
