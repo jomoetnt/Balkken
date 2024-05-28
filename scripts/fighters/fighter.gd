@@ -4,6 +4,7 @@ const WALK_SPEED = 2.0
 const JUMP_VELOCITY = 4.5
 const PREJUMP_FRAMES = 5
 const LAND_FRAMES = 4
+const INPUT_BUFFER_SIZE = 7
 
 # Get the gravity from the project settings to be synced with RigidBody nodes.
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -17,7 +18,7 @@ var mana = 0
 var actionable = true
 var actionableTimer = 0
 
-var player = 1
+@export var player = 1
 
 var moves = {
 	"Nothing": commandMove.new(0, 0, 0, "BlendSpace1D"),
@@ -100,7 +101,7 @@ func updateState():
 		
 	if actionableTimer == -1:
 		# Only the most recent bufferable input should be considered
-		for input in inputBuffer.slice(24, 29, 1, false):
+		for input in inputBuffer:
 			if input.inputButton != button.NONE:
 				bufferedInput = input
 		actionableTimer = 0
@@ -214,7 +215,7 @@ func process_input(bufInput:motionInput):
 	inputSignal.emit(str(curInput))
 	
 	for input in inputBuffer:
-		if input.lifetime >= 30:
+		if input.lifetime >= INPUT_BUFFER_SIZE:
 			inputBuffer.erase(input)
 		input.lifetime += 1
 	
@@ -224,6 +225,7 @@ func process_input(bufInput:motionInput):
 	
 	if curInput.inputButton == button.NONE and bufInput.inputButton != button.NONE:
 		curInput = bufInput
+		inputBuffer.clear()
 	
 	match curInput.inputButton:
 		button.NONE:
