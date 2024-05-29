@@ -3,7 +3,7 @@ extends Camera3D
 const CAMERA_SPEED = 5.0
 const MIN_Z = 2.5
 const MAX_Z = 4.5
-const EPSILON = 0.1
+const EPSILON = 1
 
 var player1:CharacterBody3D
 var player2:CharacterBody3D

@@ -1,7 +1,7 @@
 class_name fighter extends CharacterBody3D
 
 var WALK_SPEED = 2.0
-var JUMP_VELOCITY = 4.5
+var JUMP_VELOCITY = 6.0
 var PREJUMP_FRAMES = 5
 var LAND_FRAMES = 4
 var INPUT_BUFFER_SIZE = 7
@@ -18,6 +18,8 @@ var mana = 0
 var actionable = true
 var actionableTimer = 0
 
+var collisionNode:CollisionShape3D
+
 @export var player = 1
 
 var moves = {
@@ -26,6 +28,11 @@ var moves = {
 	"Jump Land": commandMove.new(0, 0, LAND_FRAMES, "jump_land"),
 	"Light Punch": commandMove.new(0, 0, 0, "light_punch"),
 	"Heavy Punch": commandMove.new(0, 0, 0, "heavy_punch") 
+}
+
+var hurtboxes = {
+	"Standing": hitbox.new(Vector3(0, 0, 0), Vector3(0, 0, 0), 0),
+	"Crouching": hitbox.new(Vector3(0, 0, 0), Vector3(0, 0, 0), 0)
 }
 
 enum direction {UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, NEUTRAL}
@@ -63,6 +70,8 @@ class commandMove:
 	var activeFrames:int
 	var recoveryFrames:int
 	var animationName:StringName
+	# int: hitbox, where the key is the frame it should be created.
+	var hitboxes:Dictionary
 	# Used for whatever information needs to be stored about a move, e.g. how charged
 	var data
 	func _init(startup:int, active:int, recovery:int, name:StringName):
@@ -72,9 +81,28 @@ class commandMove:
 		animationName = name
 	func get_duration():
 		return startupFrames + activeFrames + recoveryFrames
+		
+class hitbox:
+	var size:Vector3
+	var location:Vector3
+	var lifetime:int
+	var lifespan:int
+	var damage:int
+	# Hitlag (or hitstop) is the freeze effect when a hit lands, while hitstun is the opponent not being actionable after being hit.
+	var hitlag:int
+	var hitstun:int
+	var knockback:Vector2
+	# E.g. paralysis
+	var effects
+	func _init(hitSize:Vector3, hitLocation:Vector3, hitLifespan:int):
+		size = hitSize
+		location = hitLocation
+		lifespan = hitLifespan
 
 func _ready():
 	get_node("../Camera3D").lockMovement.connect(_lock_movement)
+	collisionNode = CollisionShape3D.new()
+	add_child(collisionNode)
 	if player == 1:
 		directionFacing = direction.RIGHT
 	else:
@@ -84,7 +112,7 @@ func _physics_process(delta):
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
-	updateState()
+	update_state()
 	
 	move_and_slide()
 
@@ -94,7 +122,7 @@ func isAnimationFinished():
 func isJumping():
 	return anim_state.get_current_node() == "jump" or anim_state.get_current_node() == "jump_idle"
 	
-func updateState():
+func update_state():
 	# The non-strict inequality here is intentional
 	if actionableTimer >= 0:
 		actionableTimer -= 1
@@ -138,9 +166,11 @@ func crouch():
 	velocity.x = 0
 	anim_state.travel("crouch")
 	curMove = moves["Nothing"]
+	update_hurtbox("Crouching")
 	
 func walk(speed):
 	anim_state.travel("BlendSpace1D")
+	update_hurtbox("Standing")
 	if player == 1:
 		animation_tree.set("parameters/BlendSpace1D/blend_position", speed / WALK_SPEED)
 	else:
@@ -182,6 +212,15 @@ func execute_move(move:StringName):
 	anim_state.travel(curMove.animationName)
 	actionable = false
 	actionableTimer = curMove.get_duration()
+
+func update_hurtbox(stateName:StringName):
+	remove_child(collisionNode)
+	collisionNode = CollisionShape3D.new()
+	var hurtshape = BoxShape3D.new()
+	hurtshape.size = hurtboxes[stateName].size
+	collisionNode.shape = hurtshape
+	collisionNode.position = hurtboxes[stateName].location
+	add_child(collisionNode)
 
 # This function non-trivially determines the priority system for inputs
 func parse_btn():
