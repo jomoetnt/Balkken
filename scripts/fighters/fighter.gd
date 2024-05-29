@@ -34,6 +34,9 @@ var curDir = direction.NEUTRAL
 var curBtn = button.NONE
 var curMove = moves["Nothing"]
 
+var directionFacing:direction
+var movementLocked = false
+
 var inputBuffer:Array[motionInput]
 
 signal inputSignal(inputString)
@@ -70,8 +73,14 @@ class commandMove:
 	func get_duration():
 		return startupFrames + activeFrames + recoveryFrames
 
+func _ready():
+	get_node("../Camera3D").lockMovement.connect(_lock_movement)
+	if player == 1:
+		directionFacing = direction.RIGHT
+	else:
+		directionFacing = direction.LEFT
+
 func _physics_process(delta):
-	# Add the gravity.
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
@@ -119,6 +128,11 @@ func updateState():
 		
 	if anim_state.get_current_node() == "jump_idle" and is_on_floor():
 		execute_move("Jump Land")
+
+# Stops player from going off screen
+func _lock_movement():
+	velocity.x = 0
+	movementLocked = true
 	
 func crouch():
 	velocity.x = 0
@@ -127,12 +141,24 @@ func crouch():
 	
 func walk(speed):
 	anim_state.travel("BlendSpace1D")
-	velocity.x = speed
 	if player == 1:
 		animation_tree.set("parameters/BlendSpace1D/blend_position", speed / WALK_SPEED)
 	else:
 		animation_tree.set("parameters/BlendSpace1D/blend_position", -speed / WALK_SPEED)
 	curMove = moves["Nothing"]
+	if movementLocked:
+		if directionFacing == direction.RIGHT:
+			if speed <= 0:
+				return
+			else:
+				movementLocked = false
+		elif directionFacing == direction.LEFT:
+			if speed >= 0:
+				return
+			else:
+				movementLocked = false
+		
+	velocity.x = speed
 		
 func handle_movement(motInput:motionInput, speed):
 	match motInput.inputDirection:
