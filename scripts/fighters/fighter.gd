@@ -35,6 +35,9 @@ var hurtboxes = {
 	"Crouching": hitbox.new(Vector3(0, 0, 0), Vector3(0, 0, 0), 0)
 }
 
+# hitbox: collisionshape3d
+var activeHitboxes:Dictionary
+
 enum direction {UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, NEUTRAL}
 enum button {LIGHT_PUNCH, LIGHT_KICK, HEAVY_PUNCH, HEAVY_KICK, ENHANCE, THROW, THROW_SWAP, ULTIMATE_IGNITE, START, READY, NONE}
 var curDir = direction.NEUTRAL
@@ -70,7 +73,7 @@ class commandMove:
 	var activeFrames:int
 	var recoveryFrames:int
 	var animationName:StringName
-	# int: hitbox, where the key is the frame it should be created.
+	# hitbox:int, where the value is the frame it should be created.
 	var hitboxes:Dictionary
 	# Used for whatever information needs to be stored about a move, e.g. how charged
 	var data
@@ -85,19 +88,21 @@ class commandMove:
 class hitbox:
 	var size:Vector3
 	var location:Vector3
-	var lifetime:int
+	var lifetime = 0
 	var lifespan:int
 	var damage:int
 	# Hitlag (or hitstop) is the freeze effect when a hit lands, while hitstun is the opponent not being actionable after being hit.
 	var hitlag:int
 	var hitstun:int
 	var knockback:Vector2
+	var active = false
 	# E.g. paralysis
 	var effects
 	func _init(hitSize:Vector3, hitLocation:Vector3, hitLifespan:int):
 		size = hitSize
 		location = hitLocation
 		lifespan = hitLifespan
+	
 
 func _ready():
 	get_node("../Camera3D").lockMovement.connect(_lock_movement)
@@ -143,6 +148,26 @@ func update_state():
 				bufferedInput = input
 		actionableTimer = 0
 		
+	
+	if curMove != moves["Nothing"]:
+		for box in curMove.hitboxes:
+			if box.active:
+				box.lifetime += 1
+				if box.lifetime > box.lifespan:
+					box.active = false
+					box.lifetime = 0
+					remove_child(activeHitboxes[box])
+					activeHitboxes.erase(box)
+			elif get_animation_frames() == curMove.hitboxes[box]:
+				var hit = CollisionShape3D.new()
+				var hitshape = BoxShape3D.new()
+				hitshape.size = box.size
+				hit.shape = hitshape
+				hit.position = box.location
+				add_child(hit)
+				activeHitboxes[box] = hit
+				box.active = true
+		
 	process_input(bufferedInput)
 	
 	if anim_state.get_current_node() == "jump" and isAnimationFinished():
@@ -156,6 +181,10 @@ func update_state():
 		
 	if anim_state.get_current_node() == "jump_idle" and is_on_floor():
 		execute_move("Jump Land")
+
+func get_animation_frames():
+	var frames = round(anim_state.get_current_play_position() * 60)
+	return frames
 
 # Stops player from going off screen
 func _lock_movement():
