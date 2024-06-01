@@ -1,5 +1,8 @@
 class_name fighter extends CharacterBody3D
 
+const SLIDE_VELOCITY = 0.5
+const EPSILON = 0.1
+
 var WALK_SPEED = 2.0
 var JUMP_VELOCITY = 6.0
 var PREJUMP_FRAMES = 5
@@ -11,6 +14,7 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var animation_tree = $AnimationTree
 @onready var anim_state = $AnimationTree.get("parameters/playback")
+@onready var anim_player = $AnimationPlayer
 
 var health = 500
 var mana = 0
@@ -18,7 +22,9 @@ var mana = 0
 var actionable = true
 var actionableTimer = 0
 
-var collisionNode:CollisionShape3D
+var slowmoTimer = 0
+
+var hurtboxNode:CollisionShape3D
 
 @export var player = 1
 
@@ -31,15 +37,16 @@ var moves = {
 }
 
 var hurtboxes = {
-	"Standing": hitbox.new(Vector3(0, 0, 0), Vector3(0, 0, 0), 0),
-	"Crouching": hitbox.new(Vector3(0, 0, 0), Vector3(0, 0, 0), 0)
+	"Standing": hitbox.new(Vector3.ZERO, Vector3.ZERO, 0),
+	"Crouching": hitbox.new(Vector3.ZERO, Vector3.ZERO, 0)
 }
 
-# hitbox: collisionshape3d
+# hitbox: Area3D
 var activeHitboxes:Dictionary
 
 enum direction {UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, NEUTRAL}
 enum button {LIGHT_PUNCH, LIGHT_KICK, HEAVY_PUNCH, HEAVY_KICK, ENHANCE, THROW, THROW_SWAP, ULTIMATE_IGNITE, START, READY, NONE}
+enum inputFlag {CANCELLED, BUFFERED, DROPPED}
 var curDir = direction.NEUTRAL
 var curBtn = button.NONE
 var curMove = moves["Nothing"]
@@ -49,7 +56,10 @@ var movementLocked = false
 
 var inputBuffer:Array[motionInput]
 
-signal inputSignal(inputString)
+var sliding = false
+
+signal inputSignal(inputString, flags)
+signal healthSignal(healthInt)
 
 class motionInput:
 	var inputDirection:direction
@@ -60,11 +70,7 @@ class motionInput:
 		inputDirection = inputDir
 		inputButton = inputBtn
 	func _to_string():
-		if inputButton != button.NONE:
-			return direction.keys()[inputDirection] + " + " + button.keys()[inputButton]
-		if inputDirection != direction.NEUTRAL:
-			return direction.keys()[inputDirection]
-		return ""
+		return direction.keys()[inputDirection] + " + " + button.keys()[inputButton]
 		
 class commandMove:
 	# Order of inputs matters
@@ -106,40 +112,81 @@ class hitbox:
 
 func _ready():
 	get_node("../Camera3D").lockMovement.connect(_lock_movement)
-	collisionNode = CollisionShape3D.new()
-	add_child(collisionNode)
+	get_parent().changeDirSignal.connect(_change_direction)
+	hurtboxNode = CollisionShape3D.new()
+	add_child(hurtboxNode)
 	if player == 1:
 		directionFacing = direction.RIGHT
 	else:
 		directionFacing = direction.LEFT
+	healthSignal.emit(health)
 
 func _physics_process(delta):
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
 	update_state()
+	if sliding:
+		velocity.x = SLIDE_VELOCITY * -scale.x
 	
-	move_and_slide()
+	# Slide players if they collide with each other
+	if move_and_slide():
+		var collision = get_last_slide_collision()
+		sliding = false
+		for j in collision.get_collision_count():
+			var collider = collision.get_collider(j)
+			if collider is fighter and collider != self:
+				position.x -= scale.x * delta * SLIDE_VELOCITY
+				collider.position.x -= collider.scale.x * delta * SLIDE_VELOCITY
+				if position.y > collider.position.y + EPSILON and velocity.y < 0:
+					position.y = collider.hurtboxNode.shape.size.y + collider.position.y + delta
+				sliding = true
+				collider.sliding = true
+							
+func player_hurt(hurter:hitbox):
+	health -= hurter.damage
+	actionable = false
+	actionableTimer = hurter.hitstun
+	velocity.x = hurter.knockback.x
+	velocity.y = hurter.knockback.y
+	var length = hurter.knockback.length()
+	anim_state.travel("hurt_standing")
+	healthSignal.emit(health)
+	if length > 1.0:
+		Engine.time_scale = 0.1
+		slowmoTimer = round(length) * 10
 
-func isAnimationFinished():
-	return anim_state.get_current_play_position() >= anim_state.get_current_length()
+func is_animation_finished():
+	return anim_state.get_current_play_position() >= anim_state.get_current_length() && Engine.time_scale == 1
 
-func isJumping():
+func is_jumping():
 	return anim_state.get_current_node() == "jump" or anim_state.get_current_node() == "jump_idle"
+
+func _change_direction():
+	if directionFacing == direction.RIGHT:
+		directionFacing = direction.LEFT
+	else:
+		directionFacing = direction.RIGHT
+	scale.x *= -1
 	
 func update_state():
 	# The non-strict inequality here is intentional
-	if actionableTimer >= 0:
+	if actionableTimer >= 0 && Engine.time_scale == 1:
 		actionableTimer -= 1
+		
+	if slowmoTimer > 0:
+		slowmoTimer -= 1
+		if slowmoTimer == 0:
+			Engine.time_scale = 1
 		
 	var bufferedInput = motionInput.new(direction.NEUTRAL, button.NONE)
 	
 	if actionableTimer == 0:
 		actionable = true
-		if curMove == moves["Jump"]:
+		if curMove == moves["Jump"] and anim_state.get_current_node() != "jump_idle":
 			velocity.y = JUMP_VELOCITY
 			velocity.x = curMove.data
-		curMove = moves["Nothing"]
+			curMove = moves["Nothing"]
 		
 	if actionableTimer == -1:
 		# Only the most recent bufferable input should be considered
@@ -148,38 +195,52 @@ func update_state():
 				bufferedInput = input
 		actionableTimer = 0
 		
+	for box in activeHitboxes.keys():
+		box.lifetime += 1
+		if box.lifetime > box.lifespan:
+			box.active = false
+			box.lifetime = 0
+			remove_child(activeHitboxes[box])
+			activeHitboxes.erase(box)
+			break
+		for hitPlayer in activeHitboxes[box].get_overlapping_bodies():
+			if hitPlayer is fighter:
+				hitPlayer.player_hurt(box)
+				box.active = false
+				box.lifetime = 0
+				remove_child(activeHitboxes[box])
+				activeHitboxes.erase(box)
 	
-	if curMove != moves["Nothing"]:
-		for box in curMove.hitboxes:
-			if box.active:
-				box.lifetime += 1
-				if box.lifetime > box.lifespan:
-					box.active = false
-					box.lifetime = 0
-					remove_child(activeHitboxes[box])
-					activeHitboxes.erase(box)
-			elif get_animation_frames() == curMove.hitboxes[box]:
-				var hit = CollisionShape3D.new()
-				var hitshape = BoxShape3D.new()
-				hitshape.size = box.size
-				hit.shape = hitshape
-				hit.position = box.location
-				add_child(hit)
-				activeHitboxes[box] = hit
-				box.active = true
+	for box in curMove.hitboxes:
+		if get_animation_frames() == curMove.hitboxes[box]:
+			# Area3D lets us check for collisions, which needs a CollisionShape3D child node, which needs a Shape3D property.
+			var hitDetector = Area3D.new()
+			var hitShape = CollisionShape3D.new()
+			var hitBox = BoxShape3D.new()
+			hitBox.size = box.size
+			hitShape.shape = hitBox
+			hitShape.position = box.location
+			add_child(hitDetector)
+			hitDetector.add_child(hitShape)
+			activeHitboxes[box] = hitDetector
+			box.active = true
 		
 	process_input(bufferedInput)
 	
-	if anim_state.get_current_node() == "jump" and isAnimationFinished():
+	if anim_state.get_current_node() == "jump" and is_animation_finished():
 		anim_state.travel("jump_idle")
 	
-	if anim_state.get_current_node() == "jump_land" and isAnimationFinished():
+	if anim_state.get_current_node() == "jump_land" and is_animation_finished():
 		anim_state.travel("BlendSpace1D")
 	
-	if anim_state.get_current_node() == "crouch" and isAnimationFinished():
+	if anim_state.get_current_node() == "crouch" and is_animation_finished():
 		anim_state.travel("crouch_idle")
+	
+	if curMove != moves["Nothing"] and is_animation_finished():
+		curMove = moves["Nothing"]
+		anim_state.travel("BlendSpace1D")
 		
-	if anim_state.get_current_node() == "jump_idle" and is_on_floor():
+	if anim_state.get_current_node() == "jump_idle" and is_on_floor() and !sliding:
 		execute_move("Jump Land")
 
 func get_animation_frames():
@@ -200,7 +261,7 @@ func crouch():
 func walk(speed):
 	anim_state.travel("BlendSpace1D")
 	update_hurtbox("Standing")
-	if player == 1:
+	if directionFacing == direction.RIGHT:
 		animation_tree.set("parameters/BlendSpace1D/blend_position", speed / WALK_SPEED)
 	else:
 		animation_tree.set("parameters/BlendSpace1D/blend_position", -speed / WALK_SPEED)
@@ -222,34 +283,33 @@ func walk(speed):
 func handle_movement(motInput:motionInput, speed):
 	match motInput.inputDirection:
 		direction.NEUTRAL:
-			if curMove == moves["Nothing"] and anim_state.get_current_node() != "jump_land":
-				walk(0)
+			walk(0)
 		direction.RIGHT, direction.LEFT:
-			if curMove == moves["Nothing"]:
-				walk(speed)
+			walk(speed)
 		direction.UPLEFT, direction.UP, direction.UPRIGHT:
-			if curMove == moves["Nothing"] and anim_state.get_current_node() != "jump" and anim_state.get_current_node() != "jump_idle":
-				execute_move("Jump")
-				curMove.data = speed * 2
+			execute_move("Jump")
+			curMove.data = speed * 2
 		direction.DOWNLEFT, direction.DOWN, direction.DOWNRIGHT:
-			if curMove == moves["Nothing"] and anim_state.get_current_node() != "crouch_idle" and anim_state.get_current_node() != "crouch":
-				crouch()
+			crouch()
 
 func execute_move(move:StringName):
 	velocity.x = 0
 	curMove = moves[move]
 	anim_state.travel(curMove.animationName)
-	actionable = false
+	if anim_state.get_current_node() == curMove.animationName:
+		anim_state.start(curMove.animationName)
 	actionableTimer = curMove.get_duration()
+	if actionableTimer > 0:
+		actionable = false
 
 func update_hurtbox(stateName:StringName):
-	remove_child(collisionNode)
-	collisionNode = CollisionShape3D.new()
+	remove_child(hurtboxNode)
+	hurtboxNode = CollisionShape3D.new()
 	var hurtshape = BoxShape3D.new()
 	hurtshape.size = hurtboxes[stateName].size
-	collisionNode.shape = hurtshape
-	collisionNode.position = hurtboxes[stateName].location
-	add_child(collisionNode)
+	hurtboxNode.shape = hurtshape
+	hurtboxNode.position = hurtboxes[stateName].location
+	add_child(hurtboxNode)
 
 # This function non-trivially determines the priority system for inputs
 func parse_btn():
@@ -283,6 +343,7 @@ func process_input(bufInput:motionInput):
 	curBtn = parse_btn()
 	
 	var curInput = motionInput.new(curDir, curBtn)
+	var curFlags = []
 	
 	if input_dir.x > 0.5:
 		if input_dir.y < -0.5:
@@ -305,8 +366,6 @@ func process_input(bufInput:motionInput):
 			curDir = direction.UP
 		else:
 			curDir = direction.NEUTRAL
-			
-	inputSignal.emit(str(curInput))
 	
 	for input in inputBuffer:
 		if input.lifetime >= INPUT_BUFFER_SIZE:
@@ -314,20 +373,32 @@ func process_input(bufInput:motionInput):
 		input.lifetime += 1
 	
 	if !actionable:
+		if _cancel_move(curInput):
+			curFlags.append(inputFlag.CANCELLED)
+		else:
+			curFlags.append(inputFlag.DROPPED)
 		inputBuffer.append(curInput)
-		return
+		inputSignal.emit(str(curInput), curFlags)
+		return	
 	
 	if curInput.inputButton == button.NONE and bufInput.inputButton != button.NONE:
 		curInput = bufInput
+		curFlags.append(inputFlag.BUFFERED)
 		inputBuffer.clear()
+	
+	inputSignal.emit(str(curInput), curFlags)
 	
 	match curInput.inputButton:
 		button.NONE:
-			if !isJumping():
+			if !is_jumping() and curMove == moves["Nothing"] and anim_state.get_current_node() != "jump_land":
 				handle_movement(curInput, WALK_SPEED * input_dir.x)
 		button.HEAVY_PUNCH:
-			if !isJumping():
+			if !is_jumping():
 				execute_move("Heavy Punch")
 		button.LIGHT_PUNCH:
-			if !isJumping():
+			if !is_jumping():
 				execute_move("Light Punch")
+
+# Virtual function for cancelling certain moves into others
+func _cancel_move(_curInput:motionInput):
+	pass
