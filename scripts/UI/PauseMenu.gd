@@ -14,7 +14,7 @@ func _ready():
 	buttons["Exit Match"].pressed.connect(_exit_match)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
+func _process(_delta):
 	if Input.is_action_just_pressed("pause"):
 		visible = not visible
 

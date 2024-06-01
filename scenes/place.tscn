@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://b1pcpu1pgyter"]
+[gd_scene load_steps=15 format=3 uid="uid://b1pcpu1pgyter"]
 
 [ext_resource type="Script" path="res://scripts/place.gd" id="1_xv20c"]
 [ext_resource type="Texture2D" uid="uid://dh1c0bjqxpkmk" path="res://assets/images/1200px-Checkerboard_pattern.svg.png" id="2_fq5mu"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/UI/InputDisplay.gd" id="5_5fcy6"]
 [ext_resource type="Script" path="res://scripts/UI/Healthbar.gd" id="6_71yoe"]
 [ext_resource type="Script" path="res://scripts/UI/PauseMenu.gd" id="7_n6725"]
+[ext_resource type="Script" path="res://scripts/UI/Manabar.gd" id="7_xv6f7"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_46q82"]
 albedo_color = Color(0.325441, 0.325441, 0.325441, 0)
@@ -118,6 +119,7 @@ theme_override_font_sizes/font_size = 26
 text = "Mana: 0"
 text_overrun_behavior = 2
 max_lines_visible = 10
+script = ExtResource("7_xv6f7")
 
 [node name="Manabar2" type="Label" parent="HUD"]
 clip_contents = true

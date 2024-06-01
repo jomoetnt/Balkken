@@ -15,6 +15,7 @@ func initializeMoves():
 	jabBox.hitstun = 4
 	jabBox.damage = 5
 	jabBox.blockstun = 5
+	moves["Light Punch"].commandInputs.append(motionInput.new(direction.NEUTRAL, button.LIGHT_PUNCH))
 	moves["Light Punch"].hitboxes[jabBox] = 5
 	moves["Heavy Punch"].startupFrames = 10
 	moves["Heavy Punch"].recoveryFrames = 26
@@ -25,6 +26,7 @@ func initializeMoves():
 	crossBox.knockback = Vector2(2, 2)
 	crossBox.blockKnockback = Vector2(1, 0)
 	moves["Heavy Punch"].hitboxes[crossBox] = 12
+	moves["Heavy Punch"].commandInputs.append(motionInput.new(direction.NEUTRAL, button.HEAVY_PUNCH))
 	
 func _cancel_move(_curInput:motionInput):
 	if _curInput.inputButton == button.HEAVY_PUNCH && curMove == moves["Light Punch"]:

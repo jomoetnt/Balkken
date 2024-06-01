@@ -85,6 +85,7 @@ class commandMove:
 	var startupFrames:int
 	var activeFrames:int
 	var recoveryFrames:int
+	var cancelMoves:Array[commandMove]
 	var animationName:StringName
 	# hitbox:int, where the value is the frame it should be created.
 	var hitboxes:Dictionary
@@ -97,6 +98,8 @@ class commandMove:
 		animationName = name
 	func get_duration():
 		return startupFrames + activeFrames + recoveryFrames
+	func _to_string():
+		return str(animationName)
 		
 class hitbox:
 	var size:Vector3
