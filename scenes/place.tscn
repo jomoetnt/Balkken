@@ -1,0 +1,185 @@
+[gd_scene load_steps=14 format=3 uid="uid://b1pcpu1pgyter"]
+
+[ext_resource type="Script" path="res://scripts/place.gd" id="1_xv20c"]
+[ext_resource type="Texture2D" uid="uid://dh1c0bjqxpkmk" path="res://assets/images/1200px-Checkerboard_pattern.svg.png" id="2_fq5mu"]
+[ext_resource type="Script" path="res://scripts/Camera3D.gd" id="3_lscat"]
+[ext_resource type="PackedScene" uid="uid://dk1fcb0gq8nsf" path="res://scenes/fighters/killer_bean.tscn" id="4_ylrie"]
+[ext_resource type="Script" path="res://scripts/UI/InputDisplay.gd" id="5_5fcy6"]
+[ext_resource type="Script" path="res://scripts/UI/Healthbar.gd" id="6_71yoe"]
+[ext_resource type="Script" path="res://scripts/UI/PauseMenu.gd" id="7_n6725"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_46q82"]
+albedo_color = Color(0.325441, 0.325441, 0.325441, 0)
+albedo_texture = ExtResource("2_fq5mu")
+uv1_scale = Vector3(32.23, 32.23, 32.23)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3a5gf"]
+lightmap_size_hint = Vector2i(104, 66)
+material = SubResource("StandardMaterial3D_46q82")
+size = Vector3(10, 1, 10)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_7xqbj"]
+points = PackedVector3Array(-5, -0.5, -5, -5, 0.5, -5, 5, -0.5, -5, -5, -0.5, 5, -5, 0.5, 5, 5, 0.5, -5, 5, -0.5, 5, 5, 0.5, 5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ymuep"]
+albedo_color = Color(0, 0, 0, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_u32yu"]
+material = SubResource("StandardMaterial3D_ymuep")
+size = Vector3(25.945, 18.91, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_6y3i4"]
+size = Vector3(1, 8.34473, 17.056)
+
+[node name="place" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.994554, -0.0772501, 0.536096)
+script = ExtResource("1_xv20c")
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(2.565, 0, 0, 0, 2.565, 0, 0, 0, 2.565, 0, -1.2977, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0, 1.996)
+mesh = SubResource("BoxMesh_3a5gf")
+
+[node name="FloorCollider" type="CollisionShape3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0, 1.996)
+shape = SubResource("ConvexPolygonShape3D_7xqbj")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.943, 5.005)
+fov = 45.0
+near = 0.01
+script = ExtResource("3_lscat")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 3.16903, 0)
+
+[node name="Background" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.39561)
+mesh = SubResource("BoxMesh_u32yu")
+
+[node name="KillerBean" parent="." instance=ExtResource("4_ylrie")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.445, 0.943, -0.669)
+
+[node name="KillerBean2" parent="." instance=ExtResource("4_ylrie")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.943, -0.669)
+player = 2
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="InputDisplay" type="Label" parent="HUD"]
+clip_contents = true
+offset_left = 2.0
+offset_top = 105.0
+offset_right = 715.0
+offset_bottom = 217.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 26
+text = "NEUTRAL + NONE"
+vertical_alignment = 2
+text_overrun_behavior = 2
+max_lines_visible = 10
+script = ExtResource("5_5fcy6")
+
+[node name="Healthbar1" type="Label" parent="HUD"]
+clip_contents = true
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 715.0
+offset_bottom = 46.0
+theme_override_font_sizes/font_size = 26
+text = "Health: 0"
+text_overrun_behavior = 2
+max_lines_visible = 10
+script = ExtResource("6_71yoe")
+
+[node name="Healthbar2" type="Label" parent="HUD"]
+clip_contents = true
+offset_left = 1205.0
+offset_top = 2.0
+offset_right = 1918.0
+offset_bottom = 46.0
+theme_override_font_sizes/font_size = 26
+text = "Health: 0"
+horizontal_alignment = 2
+text_overrun_behavior = 2
+max_lines_visible = 10
+script = ExtResource("6_71yoe")
+player = 2
+
+[node name="Manabar1" type="Label" parent="HUD"]
+clip_contents = true
+offset_left = 2.0
+offset_top = 44.0
+offset_right = 715.0
+offset_bottom = 88.0
+theme_override_font_sizes/font_size = 26
+text = "Mana: 0"
+text_overrun_behavior = 2
+max_lines_visible = 10
+
+[node name="Manabar2" type="Label" parent="HUD"]
+clip_contents = true
+offset_left = 1205.0
+offset_top = 44.0
+offset_right = 1918.0
+offset_bottom = 88.0
+theme_override_font_sizes/font_size = 26
+text = "Mana: 0"
+horizontal_alignment = 2
+text_overrun_behavior = 2
+max_lines_visible = 10
+
+[node name="InvisibleWalls" type="StaticBody3D" parent="."]
+
+[node name="WallRight" type="CollisionShape3D" parent="InvisibleWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.5171, 2.28369, 0.93573)
+shape = SubResource("BoxShape3D_6y3i4")
+
+[node name="WallLeft" type="CollisionShape3D" parent="InvisibleWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.1648, 2.284, 0.936)
+shape = SubResource("BoxShape3D_6y3i4")
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+visible = false
+script = ExtResource("7_n6725")
+
+[node name="Shade" type="ColorRect" parent="PauseMenu"]
+self_modulate = Color(0, 0, 0, 1)
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.129558, 0.129558, 0.129558, 0.227451)
+
+[node name="OptionMenu" type="VBoxContainer" parent="PauseMenu/Shade"]
+layout_mode = 0
+offset_left = 236.0
+offset_top = 156.0
+offset_right = 1017.0
+offset_bottom = 395.0
+theme_override_constants/separation = 1
+
+[node name="ResumeButton" type="Button" parent="PauseMenu/Shade/OptionMenu"]
+layout_mode = 2
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 36
+text = "Resume"
+alignment = 0
+
+[node name="MoveListButton" type="Button" parent="PauseMenu/Shade/OptionMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Move List"
+alignment = 0
+
+[node name="SettingsButton" type="Button" parent="PauseMenu/Shade/OptionMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Settings"
+alignment = 0
+
+[node name="ExitMatchButton" type="Button" parent="PauseMenu/Shade/OptionMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Exit Match"
+alignment = 0
