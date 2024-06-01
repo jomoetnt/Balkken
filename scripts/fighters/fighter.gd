@@ -1,13 +1,21 @@
 class_name fighter extends CharacterBody3D
 
+# Universal character constants
 const SLIDE_VELOCITY = 0.5
 const EPSILON = 0.1
+const MAX_MANA = 10
+const CROUCH_DAMAGE = 1.5
 
+# Character specific constants
 var WALK_SPEED = 2.0
 var JUMP_VELOCITY = 6.0
 var PREJUMP_FRAMES = 5
 var LAND_FRAMES = 4
 var INPUT_BUFFER_SIZE = 7
+var MAX_HEALTH = 500
+
+var health = MAX_HEALTH
+var mana = 0
 
 # Get the gravity from the project settings to be synced with RigidBody nodes.
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -15,9 +23,6 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var animation_tree = $AnimationTree
 @onready var anim_state = $AnimationTree.get("parameters/playback")
 @onready var anim_player = $AnimationPlayer
-
-var health = 500
-var mana = 0
 
 var actionable = true
 var actionableTimer = 0
@@ -30,6 +35,8 @@ var hurtboxNode:CollisionShape3D
 
 var moves = {
 	"Nothing": commandMove.new(0, 0, 0, "BlendSpace1D"),
+	"Block Standing": commandMove.new(0, 0, 0, "block_standing"),
+	"Block Crouching": commandMove.new(0, 0, 0, "block_crouching"),
 	"Jump": commandMove.new(PREJUMP_FRAMES, 0, 0, "jump"),
 	"Jump Land": commandMove.new(0, 0, LAND_FRAMES, "jump_land"),
 	"Light Punch": commandMove.new(0, 0, 0, "light_punch"),
@@ -97,10 +104,14 @@ class hitbox:
 	var lifetime = 0
 	var lifespan:int
 	var damage:int
+	# Damage dealt on blocking target
+	var chipDamage:int
 	# Hitlag (or hitstop) is the freeze effect when a hit lands, while hitstun is the opponent not being actionable after being hit.
 	var hitlag:int
 	var hitstun:int
+	var blockstun:int
 	var knockback:Vector2
+	var blockKnockback: Vector2
 	var active = false
 	# E.g. paralysis
 	var effects
@@ -128,7 +139,7 @@ func _physics_process(delta):
 	update_state()
 	if sliding:
 		velocity.x = SLIDE_VELOCITY * -scale.x
-	
+
 	# Slide players if they collide with each other
 	if move_and_slide():
 		var collision = get_last_slide_collision()
@@ -144,19 +155,56 @@ func _physics_process(delta):
 				collider.sliding = true
 							
 func player_hurt(hurter:hitbox):
-	health -= hurter.damage
-	actionable = false
-	actionableTimer = hurter.hitstun
-	velocity.x = hurter.knockback.x
-	velocity.y = hurter.knockback.y
-	var length = hurter.knockback.length()
-	anim_state.travel("hurt_standing")
-	healthSignal.emit(health)
-	if length > 1.0:
-		Engine.time_scale = 0.1
-		slowmoTimer = round(length) * 10
+	if is_blocking_standing():
+		health -= hurter.chipDamage
+		actionable = false
+		actionableTimer = hurter.blockstun
+		velocity.x = hurter.blockKnockback.x * -scale.x
+		velocity.y = hurter.blockKnockback.y
+		anim_state.travel("block_standing")
+		curMove = moves["Block Standing"]
+		healthSignal.emit(health)
+	elif is_blocking_crouching():
+		health -= hurter.chipDamage * CROUCH_DAMAGE
+		actionable = false
+		actionableTimer = hurter.blockstun
+		velocity.x = hurter.blockKnockback.x * -scale.x
+		velocity.y = hurter.blockKnockback.y
+		anim_state.travel("block_crouching")
+		curMove = moves["Block Crouching"]
+		healthSignal.emit(health)
+	else:
+		if anim_state.get_current_node() != "crouch_idle":
+			health -= hurter.damage
+		else:
+			health -= hurter.damage * CROUCH_DAMAGE
+		actionable = false
+		actionableTimer = hurter.hitstun
+		velocity.x = hurter.knockback.x * -scale.x
+		velocity.y = hurter.knockback.y
+		var length = hurter.knockback.length()
+		anim_state.travel("hurt_standing")
+		healthSignal.emit(health)
+		if length > 1.0:
+			Engine.time_scale = 0.1
+			slowmoTimer = round(length) * 10
+		
+
+func is_blocking_standing():
+	if directionFacing == direction.RIGHT:
+		return curDir == direction.LEFT
+	else:
+		return curDir == direction.RIGHT
+		
+func is_blocking_crouching():
+	if directionFacing == direction.RIGHT:
+		return curDir == direction.DOWNLEFT
+	else:
+		return curDir == direction.DOWNRIGHT
 
 func is_animation_finished():
+	if anim_state.get_current_node() == "block_standing" or anim_state.get_current_node() == "block_crouching":
+		return false
 	return anim_state.get_current_play_position() >= anim_state.get_current_length() && Engine.time_scale == 1
 
 func is_jumping():
@@ -171,7 +219,7 @@ func _change_direction():
 	
 func update_state():
 	# The non-strict inequality here is intentional
-	if actionableTimer >= 0 && Engine.time_scale == 1:
+	if actionableTimer >= 0 && abs(Engine.time_scale - 1) < EPSILON:
 		actionableTimer -= 1
 		
 	if slowmoTimer > 0:
@@ -181,19 +229,18 @@ func update_state():
 		
 	var bufferedInput = motionInput.new(direction.NEUTRAL, button.NONE)
 	
-	if actionableTimer == 0:
+	if !actionable and actionableTimer <= 0:
 		actionable = true
 		if curMove == moves["Jump"] and anim_state.get_current_node() != "jump_idle":
 			velocity.y = JUMP_VELOCITY
 			velocity.x = curMove.data
-			curMove = moves["Nothing"]
+		curMove = moves["Nothing"]
 		
 	if actionableTimer == -1:
 		# Only the most recent bufferable input should be considered
 		for input in inputBuffer:
 			if input.inputButton != button.NONE:
 				bufferedInput = input
-		actionableTimer = 0
 		
 	for box in activeHitboxes.keys():
 		box.lifetime += 1
@@ -234,6 +281,14 @@ func update_state():
 		anim_state.travel("BlendSpace1D")
 	
 	if anim_state.get_current_node() == "crouch" and is_animation_finished():
+		anim_state.travel("crouch_idle")
+	
+	if curMove == moves["Block Standing"] and actionable:
+		curMove = moves["Nothing"]
+		anim_state.travel("BlendSpace1D")
+	
+	if curMove == moves["Block Crouching"] and actionable:
+		curMove = moves["Nothing"]
 		anim_state.travel("crouch_idle")
 	
 	if curMove != moves["Nothing"] and is_animation_finished():
@@ -290,7 +345,8 @@ func handle_movement(motInput:motionInput, speed):
 			execute_move("Jump")
 			curMove.data = speed * 2
 		direction.DOWNLEFT, direction.DOWN, direction.DOWNRIGHT:
-			crouch()
+			if anim_state.get_current_node() != "crouch_idle":
+				crouch()
 
 func execute_move(move:StringName):
 	velocity.x = 0
