@@ -27,6 +27,11 @@ func initialize_moves():
 	crossBox.knockback = Vector2(2, 2)
 	crossBox.blockKnockback = Vector2(1, 0)
 	moves["Heavy Punch"].hitboxes[crossBox] = 12
+	# ignore
+	var test = crossBox.budget_stringify("cross", 0)
+	var test2 = JSON.parse_string(test)
+	if player == 1:
+		print(test2)
 	
 func _cancel_move(_curInput:motionInput):
 	if _curInput.inputButton == button.HEAVY_PUNCH && curMove == moves["Light Punch"]:

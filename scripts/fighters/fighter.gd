@@ -1,12 +1,19 @@
 class_name fighter extends CharacterBody3D
 
-# Universal character constants
-const SLIDE_VELOCITY = 0.5
-const EPSILON = 0.1
-const MAX_MANA = 10
-const CROUCH_DAMAGE = 1.5
+# System constants
+var SLOWMO_THRESHOLD = 1.0
+var SLOWMO_TIMESCALE = 0.1
+var SLOWMO_LENGTH_MULTIPLIER = 10
+var JUMP_HORIZONTAL_SPEED = 2
+var INPUT_THRESHOLD = 0.5
 
-# Character specific constants
+# Universal character constants
+var SLIDE_VELOCITY = 0.5
+var EPSILON = 0.1
+var MAX_MANA = 10
+var CROUCH_DAMAGE = 1.5
+
+# Character specific constants - stringify
 var WALK_SPEED = 2.0
 var JUMP_VELOCITY = 6.0
 var PREJUMP_FRAMES = 5
@@ -53,6 +60,7 @@ var motions = {
 	"ZL": [motionInput.new(direction.LEFT, button.NONE), motionInput.new(direction.DOWN, button.NONE), motionInput.new(direction.DOWNLEFT, button.NONE)],
 }
 
+# stringify later
 # Array[motionInput]: Array[commandMove]
 var motionMap = {}
 
@@ -88,6 +96,11 @@ class motionInput:
 		inputButton = inputBtn
 	func _to_string():
 		return direction.keys()[inputDirection] + " + " + button.keys()[inputButton]
+	func budget_stringify(numIndents):
+		var text = hitbox.print_property("direction", str(inputDirection), true, numIndents)
+		text = text + hitbox.print_property("button", str(inputButton), true, numIndents)
+		text = hitbox.create_section(text, numIndents)
+		return text
 		
 class commandMove:
 	enum state {STANDING, JUMPING}
@@ -95,6 +108,7 @@ class commandMove:
 	var startupFrames:int
 	var activeFrames:int
 	var recoveryFrames:int
+	# Moves that can be cancelled into from this move. Reserved
 	var cancelMoves:Array
 	var animationName:StringName
 	var moveName:StringName
@@ -113,6 +127,19 @@ class commandMove:
 		return startupFrames + activeFrames + recoveryFrames
 	func _to_string():
 		return str(moveName)
+	func budget_stringify(numIndents):
+		var text = hitbox.print_property("name", str(moveName), true, numIndents)
+		text = text + hitbox.print_property("inputs", str(commandInputs), true, numIndents)
+		text = text + hitbox.print_property("state", str(moveState), true, numIndents)
+		text = text + hitbox.print_property("startup", str(startupFrames), true, numIndents)
+		text = text + hitbox.print_property("active", str(activeFrames), true, numIndents)
+		text = text + hitbox.print_property("recovery", str(recoveryFrames), true, numIndents)
+		text = text + hitbox.print_property("cancellable into", str(cancelMoves), true, numIndents)
+		text = text + hitbox.print_property("animation name", str(animationName), true, numIndents)
+		# use hitbox stringify
+		text = text + hitbox.print_property("hitboxes", str(hitboxes), false, numIndents)
+		text = hitbox.create_section(text, numIndents)
+		return text
 		
 class hitbox:
 	var size:Vector3
@@ -129,12 +156,33 @@ class hitbox:
 	var knockback:Vector2
 	var blockKnockback: Vector2
 	var active = false
-	# E.g. paralysis
+	# E.g. paralysis. Currently unused but reserved.
 	var effects
 	func _init(hitSize:Vector3, hitLocation:Vector3, hitLifespan:int):
 		size = hitSize
 		location = hitLocation
 		lifespan = hitLifespan
+	# numIndents is the amount of tabs the entire object will be shifted, so properties inside will still be indented by one more tab.
+	func budget_stringify(name:StringName, numIndents):
+		var text = hitbox.print_property("name", str(name), true, numIndents)
+		text = text + hitbox.print_property("lifespan", str(lifespan), true, numIndents)
+		text = text + hitbox.print_property("damage", str(damage), true, numIndents)
+		text = text + hitbox.print_property("chipDamage", str(chipDamage), true, numIndents)
+		text = text + hitbox.print_property("hitlag", str(hitlag), true, numIndents)
+		text = text + hitbox.print_property("hitstun", str(hitstun), true, numIndents)
+		text = text + hitbox.print_property("blockstun", str(blockstun), true, numIndents)
+		text = text + hitbox.print_property("knockback", str(knockback), true, numIndents)
+		text = text + hitbox.print_property("blockKnockback", str(blockKnockback), false, numIndents)
+		text = hitbox.create_section(text, numIndents)
+		return text
+	static func create_section(text, numIndents):
+		text = "\t".repeat(numIndents) + "{\n" + "\t".repeat(numIndents) + text + "\n" + "\t".repeat(numIndents) + "}"
+		return text
+	static func print_property(property:String, value:String, comma:bool, numIndents):
+		var text = "\t".repeat(numIndents + 1) + "\"" + property + "\": \"" + value + "\""
+		if comma:
+			text = text + ",\n"
+		return text
 	
 # kinda messy
 func _ready():
@@ -184,8 +232,6 @@ func _physics_process(delta):
 		velocity.y -= gravity * delta
 
 	update_state()
-	if sliding:
-		velocity.x = SLIDE_VELOCITY * -scale.x
 
 	# Slide players if they collide with each other
 	if move_and_slide():
@@ -200,6 +246,9 @@ func _physics_process(delta):
 					position.y = collider.hurtboxNode.shape.size.y + collider.position.y + delta
 				sliding = true
 				collider.sliding = true
+	
+	if sliding:
+		velocity.x = SLIDE_VELOCITY * -scale.x
 							
 func player_hurt(hurter:hitbox):
 	if is_blocking_standing():
@@ -234,9 +283,9 @@ func player_hurt(hurter:hitbox):
 		var length = hurter.knockback.length()
 		anim_state.travel("hurt_standing")
 		healthSignal.emit(health)
-		if length > 1.0:
-			Engine.time_scale = 0.1
-			slowmoTimer = round(length) * 10
+		if length > SLOWMO_THRESHOLD:
+			Engine.time_scale = SLOWMO_TIMESCALE
+			slowmoTimer = round(length) * SLOWMO_LENGTH_MULTIPLIER
 		
 func is_blocking_standing():
 	if directionFacing == direction.RIGHT:
@@ -357,7 +406,7 @@ func get_animation_frames():
 func _lock_movement():
 	velocity.x = 0
 	movementLocked = true
-	
+
 func crouch():
 	velocity.x = 0
 	anim_state.travel("crouch")
@@ -397,7 +446,7 @@ func handle_movement(motInput:motionInput, speed):
 			anim_state.travel("jump")
 			actionable = false
 			actionableTimer = PREJUMP_FRAMES
-			curMove.data = speed * 2
+			curMove.data = speed * JUMP_HORIZONTAL_SPEED
 		direction.DOWNLEFT, direction.DOWN, direction.DOWNRIGHT:
 			if anim_state.get_current_node() != "crouch_idle":
 				crouch()
@@ -457,24 +506,24 @@ func process_input(bufInput:motionInput):
 	var curInput = motionInput.new(curDir, curBtn)
 	var curFlags = []
 	
-	if input_dir.x > 0.5:
-		if input_dir.y < -0.5:
+	if input_dir.x > INPUT_THRESHOLD:
+		if input_dir.y < -INPUT_THRESHOLD:
 			curDir = direction.DOWNRIGHT
-		elif input_dir.y > 0.5:
+		elif input_dir.y > INPUT_THRESHOLD:
 			curDir = direction.UPRIGHT
 		else:
 			curDir = direction.RIGHT
-	elif input_dir.x < -0.5:
-		if input_dir.y < -0.5:
+	elif input_dir.x < -INPUT_THRESHOLD:
+		if input_dir.y < -INPUT_THRESHOLD:
 			curDir = direction.DOWNLEFT
-		elif input_dir.y > 0.5:
+		elif input_dir.y > INPUT_THRESHOLD:
 			curDir = direction.UPLEFT
 		else:
 			curDir = direction.LEFT
 	else:
-		if input_dir.y < -0.5:
+		if input_dir.y < -INPUT_THRESHOLD:
 			curDir = direction.DOWN
-		elif input_dir.y > 0.5:
+		elif input_dir.y > INPUT_THRESHOLD:
 			curDir = direction.UP
 		else:
 			curDir = direction.NEUTRAL
@@ -506,10 +555,6 @@ func process_input(bufInput:motionInput):
 	else:
 		var curMotion = inputBuffer.duplicate(true)
 		curMotion.append(curInput)
-		
-		var dirName = direction.keys()[curInput.inputDirection]
-		var butName = button.keys()[curInput.inputButton]
-		
 		
 		var potentialMoves = []
 		for motion in motionMap:
