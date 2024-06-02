@@ -33,30 +33,39 @@ var hurtboxNode:CollisionShape3D
 
 @export var player = 1
 
-var moves = {
-	"Nothing": commandMove.new(0, 0, 0, "BlendSpace1D"),
-	"Block Standing": commandMove.new(0, 0, 0, "block_standing"),
-	"Block Crouching": commandMove.new(0, 0, 0, "block_crouching"),
-	"Jump": commandMove.new(PREJUMP_FRAMES, 0, 0, "jump"),
-	"Jump Land": commandMove.new(0, 0, LAND_FRAMES, "jump_land"),
-	"Light Punch": commandMove.new(0, 0, 0, "light_punch"),
-	"Heavy Punch": commandMove.new(0, 0, 0, "heavy_punch") 
-}
+# StringName: commandMove
+var moves:Dictionary
 
 var hurtboxes = {
 	"Standing": hitbox.new(Vector3.ZERO, Vector3.ZERO, 0),
 	"Crouching": hitbox.new(Vector3.ZERO, Vector3.ZERO, 0)
 }
 
+# Q = quarter, C = circle, R = right, L = left
+var motions = {
+	"QCR": [motionInput.new(direction.DOWN, button.NONE), motionInput.new(direction.DOWNRIGHT, button.NONE), motionInput.new(direction.RIGHT, button.NONE)],
+	"QCL": [motionInput.new(direction.DOWN, button.NONE), motionInput.new(direction.DOWNLEFT, button.NONE), motionInput.new(direction.LEFT, button.NONE)],
+	"HCR": [motionInput.new(direction.LEFT, button.NONE), motionInput.new(direction.DOWNLEFT, button.NONE), motionInput.new(direction.DOWN, button.NONE), \
+	motionInput.new(direction.DOWNRIGHT, button.NONE), motionInput.new(direction.RIGHT, button.NONE)],
+	"HCL": [motionInput.new(direction.RIGHT, button.NONE), motionInput.new(direction.DOWNRIGHT, button.NONE), motionInput.new(direction.DOWN, button.NONE), \
+	motionInput.new(direction.DOWNLEFT, button.NONE), motionInput.new(direction.LEFT, button.NONE)],
+	"ZR": [motionInput.new(direction.RIGHT, button.NONE), motionInput.new(direction.DOWN, button.NONE), motionInput.new(direction.DOWNRIGHT, button.NONE)],
+	"ZL": [motionInput.new(direction.LEFT, button.NONE), motionInput.new(direction.DOWN, button.NONE), motionInput.new(direction.DOWNLEFT, button.NONE)],
+}
+
+# Array[motionInput]: Array[commandMove]
+var motionMap = {}
+
 # hitbox: Area3D
-var activeHitboxes:Dictionary
+var activeHitboxes = {}
 
 enum direction {UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, NEUTRAL}
 enum button {LIGHT_PUNCH, LIGHT_KICK, HEAVY_PUNCH, HEAVY_KICK, ENHANCE, THROW, THROW_SWAP, ULTIMATE_IGNITE, START, READY, NONE}
 enum inputFlag {CANCELLED, BUFFERED, DROPPED}
+
 var curDir = direction.NEUTRAL
 var curBtn = button.NONE
-var curMove = moves["Nothing"]
+var curMove:commandMove
 
 var directionFacing:direction
 var movementLocked = false
@@ -64,6 +73,7 @@ var movementLocked = false
 var inputBuffer:Array[motionInput]
 
 var sliding = false
+var blocking = false
 
 signal inputSignal(inputString, flags)
 signal healthSignal(healthInt)
@@ -80,26 +90,29 @@ class motionInput:
 		return direction.keys()[inputDirection] + " + " + button.keys()[inputButton]
 		
 class commandMove:
-	# Order of inputs matters
-	var commandInputs:Array[motionInput]
+	enum state {STANDING, JUMPING}
+	var commandInputs = []
 	var startupFrames:int
 	var activeFrames:int
 	var recoveryFrames:int
-	var cancelMoves:Array[commandMove]
+	var cancelMoves:Array
 	var animationName:StringName
+	var moveName:StringName
+	var moveState:state
 	# hitbox:int, where the value is the frame it should be created.
 	var hitboxes:Dictionary
 	# Used for whatever information needs to be stored about a move, e.g. how charged
 	var data
-	func _init(startup:int, active:int, recovery:int, name:StringName):
+	func _init(startup:int, active:int, recovery:int, animName:StringName, name:StringName):
 		startupFrames = startup
 		activeFrames = active
 		recoveryFrames = recovery
-		animationName = name
+		animationName = animName
+		moveName = name
 	func get_duration():
 		return startupFrames + activeFrames + recoveryFrames
 	func _to_string():
-		return str(animationName)
+		return str(moveName)
 		
 class hitbox:
 	var size:Vector3
@@ -123,17 +136,48 @@ class hitbox:
 		location = hitLocation
 		lifespan = hitLifespan
 	
-
+# kinda messy
 func _ready():
 	get_node("../Camera3D").lockMovement.connect(_lock_movement)
+	
 	get_parent().changeDirSignal.connect(_change_direction)
+	
 	hurtboxNode = CollisionShape3D.new()
 	add_child(hurtboxNode)
+	
 	if player == 1:
 		directionFacing = direction.RIGHT
 	else:
 		directionFacing = direction.LEFT
+	
 	healthSignal.emit(health)
+	
+	var mList = []
+	_init_moves(mList)
+	for move in mList:
+		moves[move.moveName] = move
+	
+	for moveName in moves:
+		var move = moves[moveName]
+		if motionMap.has(move.commandInputs):
+			motionMap[move.commandInputs].append(move)
+		else:
+			motionMap[move.commandInputs] = [move]
+	
+	curMove = moves["Nothing"]
+	
+func _init_moves(list):
+	var nothing = commandMove.new(0, 0, 0, "BlendSpace1D", "Nothing")
+	nothing.commandInputs.append(motionInput.new(direction.NEUTRAL, button.NONE))
+	list.append(nothing)
+	var slp = commandMove.new(0, 0, 0, "light_punch", "Light Punch")
+	slp.commandInputs.append(motionInput.new(direction.NEUTRAL, button.LIGHT_PUNCH))
+	slp.moveState = slp.state.STANDING
+	list.append(slp)
+	var shp = commandMove.new(0, 0, 0, "heavy_punch", "Heavy Punch")
+	shp.commandInputs.append(motionInput.new(direction.NEUTRAL, button.HEAVY_PUNCH))
+	shp.moveState = shp.state.STANDING
+	list.append(shp)
 
 func _physics_process(delta):
 	if not is_on_floor():
@@ -167,6 +211,7 @@ func player_hurt(hurter:hitbox):
 		anim_state.travel("block_standing")
 		curMove = moves["Block Standing"]
 		healthSignal.emit(health)
+		blocking = true
 	elif is_blocking_crouching():
 		health -= hurter.chipDamage * CROUCH_DAMAGE
 		actionable = false
@@ -176,6 +221,7 @@ func player_hurt(hurter:hitbox):
 		anim_state.travel("block_crouching")
 		curMove = moves["Block Crouching"]
 		healthSignal.emit(health)
+		blocking = true
 	else:
 		if anim_state.get_current_node() != "crouch_idle":
 			health -= hurter.damage
@@ -192,7 +238,6 @@ func player_hurt(hurter:hitbox):
 			Engine.time_scale = 0.1
 			slowmoTimer = round(length) * 10
 		
-
 func is_blocking_standing():
 	if directionFacing == direction.RIGHT:
 		return curDir == direction.LEFT
@@ -234,7 +279,7 @@ func update_state():
 	
 	if !actionable and actionableTimer <= 0:
 		actionable = true
-		if curMove == moves["Jump"] and anim_state.get_current_node() != "jump_idle":
+		if anim_state.get_current_node() == "jump":
 			velocity.y = JUMP_VELOCITY
 			velocity.x = curMove.data
 		curMove = moves["Nothing"]
@@ -251,6 +296,7 @@ func update_state():
 			box.active = false
 			box.lifetime = 0
 			remove_child(activeHitboxes[box])
+			# apparently erasing elements while iterating over an array results in undefined behaviour
 			activeHitboxes.erase(box)
 			break
 		for hitPlayer in activeHitboxes[box].get_overlapping_bodies():
@@ -259,6 +305,7 @@ func update_state():
 				box.active = false
 				box.lifetime = 0
 				remove_child(activeHitboxes[box])
+				# apparently erasing elements while iterating over an array results in undefined behaviour
 				activeHitboxes.erase(box)
 	
 	for box in curMove.hitboxes:
@@ -286,20 +333,21 @@ func update_state():
 	if anim_state.get_current_node() == "crouch" and is_animation_finished():
 		anim_state.travel("crouch_idle")
 	
-	if curMove == moves["Block Standing"] and actionable:
-		curMove = moves["Nothing"]
+	if anim_state.get_current_node() == "block_standing" and actionable:
 		anim_state.travel("BlendSpace1D")
 	
-	if curMove == moves["Block Crouching"] and actionable:
-		curMove = moves["Nothing"]
-		anim_state.travel("crouch_idle")
+	if anim_state.get_current_node() == "block_crouching" and actionable:
+		anim_state.travel("BlendSpace1D")
 	
 	if curMove != moves["Nothing"] and is_animation_finished():
 		curMove = moves["Nothing"]
 		anim_state.travel("BlendSpace1D")
 		
 	if anim_state.get_current_node() == "jump_idle" and is_on_floor() and !sliding:
-		execute_move("Jump Land")
+		anim_state.travel("jump_land")
+		actionable = false
+		actionableTimer = LAND_FRAMES
+		velocity.x = 0
 
 func get_animation_frames():
 	var frames = round(anim_state.get_current_play_position() * 60)
@@ -345,19 +393,24 @@ func handle_movement(motInput:motionInput, speed):
 		direction.RIGHT, direction.LEFT:
 			walk(speed)
 		direction.UPLEFT, direction.UP, direction.UPRIGHT:
-			execute_move("Jump")
+			velocity.x = 0
+			anim_state.travel("jump")
+			actionable = false
+			actionableTimer = PREJUMP_FRAMES
 			curMove.data = speed * 2
 		direction.DOWNLEFT, direction.DOWN, direction.DOWNRIGHT:
 			if anim_state.get_current_node() != "crouch_idle":
 				crouch()
 
-func execute_move(move:StringName):
+func execute_move(move:commandMove):
 	velocity.x = 0
-	curMove = moves[move]
-	anim_state.travel(curMove.animationName)
-	if anim_state.get_current_node() == curMove.animationName:
-		anim_state.start(curMove.animationName)
-	actionableTimer = curMove.get_duration()
+	curMove = move
+	if move == moves["Nothing"]:
+		return
+	anim_state.travel(move.animationName)
+	if anim_state.get_current_node() == move.animationName:
+		anim_state.start(move.animationName)
+	actionableTimer = move.get_duration()
 	if actionableTimer > 0:
 		actionable = false
 
@@ -428,6 +481,7 @@ func process_input(bufInput:motionInput):
 	
 	for input in inputBuffer:
 		if input.lifetime >= INPUT_BUFFER_SIZE:
+			# apparently erasing elements while iterating over an array results in undefined behaviour
 			inputBuffer.erase(input)
 		input.lifetime += 1
 	
@@ -447,16 +501,70 @@ func process_input(bufInput:motionInput):
 	
 	inputSignal.emit(str(curInput), curFlags)
 	
-	match curInput.inputButton:
-		button.NONE:
-			if !is_jumping() and curMove == moves["Nothing"] and anim_state.get_current_node() != "jump_land":
-				handle_movement(curInput, WALK_SPEED * input_dir.x)
-		button.HEAVY_PUNCH:
-			if !is_jumping():
-				execute_move("Heavy Punch")
-		button.LIGHT_PUNCH:
-			if !is_jumping():
-				execute_move("Light Punch")
+	if !is_jumping() and curMove == moves["Nothing"] and anim_state.get_current_node() != "jump_land" and curInput.inputButton == button.NONE:
+		handle_movement(curInput, WALK_SPEED * input_dir.x)
+	else:
+		var curMotion = inputBuffer.duplicate(true)
+		curMotion.append(curInput)
+		
+		var dirName = direction.keys()[curInput.inputDirection]
+		var butName = button.keys()[curInput.inputButton]
+		
+		
+		var potentialMoves = []
+		for motion in motionMap:
+			if are_same_motions(curMotion, motion) and motion in motionMap:
+				potentialMoves.append_array(motionMap[motion])
+		if is_jumping():
+			for move in potentialMoves:
+				if move.moveState == move.state.JUMPING:
+					execute_move(move)
+					return
+		else:
+			for move in potentialMoves:
+				if move.moveState == move.state.STANDING:
+					execute_move(move)
+					return
+
+func are_same_inputs(input1:motionInput, input2:motionInput):
+	if input1 == null or input2 == null:
+		if input1 == null and input2 == null:
+			return true
+		return false
+	if input1.inputDirection == input2.inputDirection and input1.inputButton == input2.inputButton:
+		return true
+	return false
+
+# This will have some more complicated logic in the future to make motion inputs a bit lenient.
+# Currently removes repeated values in both motions, only comparing the elements and their order.
+func are_same_motions(motion1:Array, motion2:Array):
+	if motion1.is_empty() or motion2.is_empty():
+		if motion1.is_empty() and motion2.is_empty():
+			return true
+		return false
+	var minSize = min(motion1.size(), motion2.size())
+	var lastUniqueInput1:motionInput
+	var lastUniqueInput2:motionInput
+	var cleanedMotion1 = []
+	var cleanedMotion2 = []
+	for i in minSize:
+		if are_same_inputs(motion1[i], moves["Nothing"].commandInputs[0]) or are_same_inputs(motion2[i], moves["Nothing"].commandInputs[0]):
+			continue
+		if !are_same_inputs(motion1[i], lastUniqueInput1):
+			lastUniqueInput1 = motion1[i]
+			cleanedMotion1.append(lastUniqueInput1)
+		if !are_same_inputs(motion2[i], lastUniqueInput2):
+			lastUniqueInput2 = motion2[i]
+			cleanedMotion2.append(lastUniqueInput2)
+	if lastUniqueInput1 == null or lastUniqueInput2 == null:
+		return false
+	var cleanedSize = cleanedMotion1.size()
+	if cleanedSize != cleanedMotion2.size():
+		return false
+	for i in cleanedSize:
+		if !are_same_inputs(cleanedMotion1[i], cleanedMotion2[i]):
+			return false
+	return true
 
 # Virtual function for cancelling certain moves into others
 func _cancel_move(_curInput:motionInput):

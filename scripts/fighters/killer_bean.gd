@@ -1,21 +1,22 @@
 class_name KillerBeanFighter extends "fighter.gd"
 
 
-func _init():
+func _ready():
+	super._ready()
 	hurtboxes["Standing"].size = Vector3(0.735, 1.413, 0.5)
 	hurtboxes["Standing"].location = Vector3(0.048, -0.12, 0.2)
 	hurtboxes["Crouching"].size = Vector3(0.735, 1.22, 0.5)
 	hurtboxes["Crouching"].location = Vector3(0.048, -0.23, 0.2)
 	
-	initializeMoves()
+	initialize_moves()
 
-func initializeMoves():
+# temporary
+func initialize_moves():
 	moves["Light Punch"].recoveryFrames = 17
 	var jabBox = hitbox.new(Vector3(1, 1, 0.5), Vector3(1, 0, 0), 5)
 	jabBox.hitstun = 4
 	jabBox.damage = 5
 	jabBox.blockstun = 5
-	moves["Light Punch"].commandInputs.append(motionInput.new(direction.NEUTRAL, button.LIGHT_PUNCH))
 	moves["Light Punch"].hitboxes[jabBox] = 5
 	moves["Heavy Punch"].startupFrames = 10
 	moves["Heavy Punch"].recoveryFrames = 26
@@ -26,10 +27,9 @@ func initializeMoves():
 	crossBox.knockback = Vector2(2, 2)
 	crossBox.blockKnockback = Vector2(1, 0)
 	moves["Heavy Punch"].hitboxes[crossBox] = 12
-	moves["Heavy Punch"].commandInputs.append(motionInput.new(direction.NEUTRAL, button.HEAVY_PUNCH))
 	
 func _cancel_move(_curInput:motionInput):
 	if _curInput.inputButton == button.HEAVY_PUNCH && curMove == moves["Light Punch"]:
-		execute_move("Heavy Punch")
+		execute_move(moves["Heavy Punch"])
 		return true
 	return false

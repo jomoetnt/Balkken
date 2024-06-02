@@ -13,5 +13,5 @@ func _ready():
 
 
 # temporary
-func _process(delta):
+func _process(_delta):
 	text = "curMove: " + str(fighterNode.curMove)
