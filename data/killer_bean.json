@@ -1,0 +1,92 @@
+{
+	"characterName": "Killer Bean",
+	"maxHealth": "500",
+	"walkSpeed": "2",
+	"jumpSpeedVertical": "6",
+	"jumpSpeedHorizontal": "2",
+	"prejump": "5",
+	"landing": "4",
+	"moves": [
+		{
+			"name": "Nothing",
+			"inputs": [
+				{
+					"direction": "NEUTRAL",
+					"button": "NONE"
+				}
+			],
+			"state": "STANDING",
+			"startup": "0",
+			"active": "0",
+			"recovery": "0",
+			"cancellableInto": "[]",
+			"animationName": "BlendSpace1D",
+			"hitboxes": [
+			]
+		},
+		{
+			"name": "Light Punch",
+			"inputs": [
+				{
+					"direction": "NEUTRAL",
+					"button": "LIGHT_PUNCH"
+				}
+			],
+			"state": "STANDING",
+			"startup": "0",
+			"active": "0",
+			"recovery": "17",
+			"cancellableInto": "[]",
+			"animationName": "light_punch",
+			"hitboxes": [
+				{
+					"hitbox": {
+						"lifespan": "5",
+						"damage": "5",
+						"chipDamage": "0",
+						"hitlag": "0",
+						"hitstun": "4",
+						"blockstun": "5",
+						"knockback": "(0, 0)",
+						"size": "(1, 1, 0.5)",
+						"location": "(1, 0, 0)",
+						"blockKnockback": "(0, 0)"
+					},
+					"firstActiveFrame": "5"
+				}
+			]
+		},
+		{
+			"name": "Heavy Punch",
+			"inputs": [
+				{
+					"direction": "NEUTRAL",
+					"button": "HEAVY_PUNCH"
+				}
+			],
+			"state": "STANDING",
+			"startup": "10",
+			"active": "0",
+			"recovery": "26",
+			"cancellableInto": "[]",
+			"animationName": "heavy_punch",
+			"hitboxes": [
+				{
+					"hitbox": {
+						"lifespan": "15",
+						"damage": "10",
+						"chipDamage": "0",
+						"hitlag": "0",
+						"hitstun": "15",
+						"blockstun": "10",
+						"knockback": "(2, 2)",
+						"size": "(1, 1, 0.5)",
+						"location": "(1, 0, 0)",
+						"blockKnockback": "(1, 0)"
+					},
+					"firstActiveFrame": "12"
+				}
+			]
+		}
+	]
+}

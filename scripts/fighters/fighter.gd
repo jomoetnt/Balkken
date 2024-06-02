@@ -4,8 +4,8 @@ class_name fighter extends CharacterBody3D
 var SLOWMO_THRESHOLD = 1.0
 var SLOWMO_TIMESCALE = 0.1
 var SLOWMO_LENGTH_MULTIPLIER = 10
-var JUMP_HORIZONTAL_SPEED = 2
 var INPUT_THRESHOLD = 0.5
+var INPUT_BUFFER_SIZE = 7
 
 # Universal character constants
 var SLIDE_VELOCITY = 0.5
@@ -16,10 +16,11 @@ var CROUCH_DAMAGE = 1.5
 # Character specific constants - stringify
 var WALK_SPEED = 2.0
 var JUMP_VELOCITY = 6.0
+var JUMP_HORIZONTAL_SPEED = 2
 var PREJUMP_FRAMES = 5
 var LAND_FRAMES = 4
-var INPUT_BUFFER_SIZE = 7
 var MAX_HEALTH = 500
+var FIGHTER_NAME = "jeff"
 
 var health = MAX_HEALTH
 var mana = 0
@@ -97,9 +98,9 @@ class motionInput:
 	func _to_string():
 		return direction.keys()[inputDirection] + " + " + button.keys()[inputButton]
 	func budget_stringify(numIndents):
-		var text = hitbox.print_property("direction", str(inputDirection), true, numIndents)
-		text = text + hitbox.print_property("button", str(inputButton), true, numIndents)
-		text = hitbox.create_section(text, numIndents)
+		var text = hitbox.print_property("direction", direction.keys()[inputDirection], true, numIndents)
+		text = text + hitbox.print_property("button", button.keys()[inputButton], false, numIndents)
+		text = "\t".repeat(numIndents) + hitbox.create_section(text, numIndents)
 		return text
 		
 class commandMove:
@@ -129,18 +130,42 @@ class commandMove:
 		return str(moveName)
 	func budget_stringify(numIndents):
 		var text = hitbox.print_property("name", str(moveName), true, numIndents)
-		text = text + hitbox.print_property("inputs", str(commandInputs), true, numIndents)
-		text = text + hitbox.print_property("state", str(moveState), true, numIndents)
+		text = text + stringify_inputs(numIndents + 1) + ",\n"
+		text = text + hitbox.print_property("state", state.keys()[moveState], true, numIndents)
 		text = text + hitbox.print_property("startup", str(startupFrames), true, numIndents)
 		text = text + hitbox.print_property("active", str(activeFrames), true, numIndents)
 		text = text + hitbox.print_property("recovery", str(recoveryFrames), true, numIndents)
-		text = text + hitbox.print_property("cancellable into", str(cancelMoves), true, numIndents)
-		text = text + hitbox.print_property("animation name", str(animationName), true, numIndents)
-		# use hitbox stringify
-		text = text + hitbox.print_property("hitboxes", str(hitboxes), false, numIndents)
-		text = hitbox.create_section(text, numIndents)
+		text = text + hitbox.print_property("cancellableInto", str(cancelMoves), true, numIndents)
+		text = text + hitbox.print_property("animationName", str(animationName), true, numIndents)
+		text = text + stringify_hitboxes(numIndents)
+		text = "\t".repeat(numIndents) + hitbox.create_section(text, numIndents)
 		return text
+	func stringify_hitboxes(numIndents):
+		var text = ""
+		for box in hitboxes:
+			# I want to remove the trailing commas at some point
+			text = "\t".repeat(numIndents + 3) + "\"hitbox\": " + text + box.budget_stringify(numIndents + 3) + ",\n"
+			text = text + "\t".repeat(numIndents + 3) + "\"firstActiveFrame\": " + "\"" + str(hitboxes[box]) + "\""
+			text = "\t".repeat(numIndents + 2) + hitbox.create_section(text, numIndents + 2)
+			if box != hitboxes.keys()[-1]:
+				text = text + ","
+			text = text + "\n"
+		text = "\t".repeat(numIndents + 1) + "\"hitboxes\": " + commandMove.create_array(text, numIndents + 1)
+		return text
+	func stringify_inputs(numIndents):
+		var text = ""
+		for input in commandInputs:
+			text = text + input.budget_stringify(numIndents + 1)
+			if input != commandInputs[-1]:
+				text = text + ","
+			text = text + "\n"
 		
+		text = "\t".repeat(numIndents) + "\"inputs\": " + commandMove.create_array(text, numIndents)
+		return text
+	static func create_array(text, numIndents):
+		text = "[\n" + text + "\t".repeat(numIndents) + "]"
+		return text
+
 class hitbox:
 	var size:Vector3
 	var location:Vector3
@@ -163,8 +188,8 @@ class hitbox:
 		location = hitLocation
 		lifespan = hitLifespan
 	# numIndents is the amount of tabs the entire object will be shifted, so properties inside will still be indented by one more tab.
-	func budget_stringify(name:StringName, numIndents):
-		var text = hitbox.print_property("name", str(name), true, numIndents)
+	func budget_stringify(numIndents):
+		var text = ""
 		text = text + hitbox.print_property("lifespan", str(lifespan), true, numIndents)
 		text = text + hitbox.print_property("damage", str(damage), true, numIndents)
 		text = text + hitbox.print_property("chipDamage", str(chipDamage), true, numIndents)
@@ -172,11 +197,13 @@ class hitbox:
 		text = text + hitbox.print_property("hitstun", str(hitstun), true, numIndents)
 		text = text + hitbox.print_property("blockstun", str(blockstun), true, numIndents)
 		text = text + hitbox.print_property("knockback", str(knockback), true, numIndents)
+		text = text + hitbox.print_property("size", str(size), true, numIndents)
+		text = text + hitbox.print_property("location", str(location), true, numIndents)
 		text = text + hitbox.print_property("blockKnockback", str(blockKnockback), false, numIndents)
 		text = hitbox.create_section(text, numIndents)
 		return text
 	static func create_section(text, numIndents):
-		text = "\t".repeat(numIndents) + "{\n" + "\t".repeat(numIndents) + text + "\n" + "\t".repeat(numIndents) + "}"
+		text = "{\n" + text + "\n" + "\t".repeat(numIndents) + "}"
 		return text
 	static func print_property(property:String, value:String, comma:bool, numIndents):
 		var text = "\t".repeat(numIndents + 1) + "\"" + property + "\": \"" + value + "\""
@@ -198,10 +225,13 @@ func _ready():
 	else:
 		directionFacing = direction.LEFT
 	
+	var characterData = JSON.parse_string(read_from_file("res://data/killer_bean.json"))
+	load_character(characterData)
+	
 	healthSignal.emit(health)
 	
 	var mList = []
-	_init_moves(mList)
+	#_init_moves(mList)
 	for move in mList:
 		moves[move.moveName] = move
 	
@@ -614,3 +644,103 @@ func are_same_motions(motion1:Array, motion2:Array):
 # Virtual function for cancelling certain moves into others
 func _cancel_move(_curInput:motionInput):
 	pass
+
+func budget_stringify(numIndents):
+	var text = hitbox.print_property("characterName", str(FIGHTER_NAME), true, numIndents)
+	text = text + hitbox.print_property("maxHealth", str(MAX_HEALTH), true, numIndents)
+	text = text + hitbox.print_property("walkSpeed", str(WALK_SPEED), true, numIndents)
+	text = text + hitbox.print_property("jumpSpeedVertical", str(JUMP_VELOCITY), true, numIndents)
+	text = text + hitbox.print_property("jumpSpeedHorizontal", str(JUMP_HORIZONTAL_SPEED), true, numIndents)
+	text = text + hitbox.print_property("prejump", str(PREJUMP_FRAMES), true, numIndents)
+	text = text + hitbox.print_property("landing", str(LAND_FRAMES), true, numIndents)
+	text = text + stringify_moves(numIndents)
+	return hitbox.create_section(text, numIndents)
+
+func stringify_moves(numIndents):
+	var text = ""
+	for move in moves:
+		text = text + moves[move].budget_stringify(numIndents + 2)
+		if move != moves.keys()[-1]:
+			text = text + ","
+		text = text + "\n"
+	
+	text = "\t".repeat(numIndents + 1) + "\"moves\": " + commandMove.create_array(text, numIndents + 1)
+	return text
+
+func load_character(data):
+	FIGHTER_NAME = data["characterName"]
+	MAX_HEALTH = int(data["maxHealth"])
+	WALK_SPEED = float(data["walkSpeed"])
+	JUMP_VELOCITY = float(data["jumpSpeedVertical"])
+	JUMP_HORIZONTAL_SPEED = float(data["jumpSpeedHorizontal"])
+	PREJUMP_FRAMES = int(data["prejump"])
+	LAND_FRAMES = int(data["landing"])
+	moves = load_moves(data["moves"])
+
+func load_moves(moveData):
+	var parsedMoves = {}
+	for loadedMove in moveData:
+		var parsedMove = commandMove.new(int(loadedMove["startup"]), int(loadedMove["active"]), int(loadedMove["recovery"]), \
+			loadedMove["animationName"], loadedMove["name"])
+		parsedMove.moveState = loadedMove["state"]
+		parsedMove.commandInputs = load_inputs(loadedMove["inputs"])
+		# parsedMove.cancelMoves = loadedMove["cancellableInto"]
+		parsedMove.animationName = loadedMove["animationName"]
+		parsedMove.hitboxes = load_hitboxes(loadedMove["hitboxes"])
+		parsedMoves[parsedMove.moveName] = parsedMove
+	return parsedMoves
+
+func load_inputs(inputData):
+	var parsedInputs = []
+	for loadedInput in inputData:
+		# Named enums in godot are constant dictionaries
+		var parsedInput = motionInput.new(direction[loadedInput["direction"]], button[loadedInput["button"]])
+		parsedInputs.append(parsedInput)
+	return parsedInputs
+
+func load_hitboxes(hitboxData):
+	var parsedHitboxes = {}
+	for loadedHitboxEntry in hitboxData:
+		var loadedHitbox = loadedHitboxEntry["hitbox"]
+		
+		var parsedSize = parse_vector(loadedHitbox["size"])
+		var parsedLocation = parse_vector(loadedHitbox["location"])
+		var parsedHitbox = hitbox.new(parsedSize, parsedLocation, int(loadedHitbox["lifespan"]))
+		
+		parsedHitbox.damage = int(loadedHitbox["damage"])
+		parsedHitbox.chipDamage = int(loadedHitbox["chipDamage"])
+		parsedHitbox.hitlag = int(loadedHitbox["hitlag"])
+		parsedHitbox.hitstun = int(loadedHitbox["hitstun"])
+		parsedHitbox.blockstun = int(loadedHitbox["blockstun"])
+		
+		var parsedKnockback = parse_vector(loadedHitbox["knockback"])
+		var parsedBlockKnockback = parse_vector(loadedHitbox["blockKnockback"])
+		
+		parsedHitbox.knockback = parsedKnockback
+		parsedHitbox.blockKnockback = parsedBlockKnockback
+		
+		parsedHitboxes[parsedHitbox] = int(loadedHitboxEntry["firstActiveFrame"])
+	return parsedHitboxes
+
+func parse_vector(string):
+	var vecString = String(string)
+	vecString = vecString.replace("(", "")
+	vecString = vecString.replace(")", "")
+	vecString = vecString.replace(" ", "")
+	var stringArr = vecString.split(",")
+	var floatArr = []
+	for stringle in stringArr:
+		floatArr.append(float(stringle))
+	if floatArr.size() == 2:
+		return Vector2(floatArr[0], floatArr[1])
+	else:
+		return Vector3(floatArr[0], floatArr[1], floatArr[2])
+
+func write_to_file(path:String, content:String):
+	var file = FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(content)
+
+func read_from_file(path:String):
+	var file = FileAccess.open(path, FileAccess.READ)
+	var content = file.get_as_text()
+	return content

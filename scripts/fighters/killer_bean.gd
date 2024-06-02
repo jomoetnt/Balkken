@@ -7,7 +7,7 @@ func _ready():
 	hurtboxes["Standing"].location = Vector3(0.048, -0.12, 0.2)
 	hurtboxes["Crouching"].size = Vector3(0.735, 1.22, 0.5)
 	hurtboxes["Crouching"].location = Vector3(0.048, -0.23, 0.2)
-	
+	FIGHTER_NAME = "Killer Bean"
 	initialize_moves()
 
 # temporary
@@ -27,11 +27,7 @@ func initialize_moves():
 	crossBox.knockback = Vector2(2, 2)
 	crossBox.blockKnockback = Vector2(1, 0)
 	moves["Heavy Punch"].hitboxes[crossBox] = 12
-	# ignore
-	var test = crossBox.budget_stringify("cross", 0)
-	var test2 = JSON.parse_string(test)
-	if player == 1:
-		print(test2)
+	#write_to_file("res://data/killer_bean.json", test)
 	
 func _cancel_move(_curInput:motionInput):
 	if _curInput.inputButton == button.HEAVY_PUNCH && curMove == moves["Light Punch"]:
