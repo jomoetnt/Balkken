@@ -40,19 +40,17 @@
 			"animationName": "light_punch",
 			"hitboxes": [
 				{
-					"hitbox": {
-						"lifespan": "5",
-						"damage": "5",
-						"chipDamage": "0",
-						"hitlag": "0",
-						"hitstun": "4",
-						"blockstun": "5",
-						"knockback": "(0, 0)",
-						"size": "(1, 1, 0.5)",
-						"location": "(1, 0, 0)",
-						"blockKnockback": "(0, 0)"
-					},
-					"firstActiveFrame": "5"
+					"lifespan": "5",
+					"firstActiveFrame": "5",
+					"damage": "5",
+					"chipDamage": "0",
+					"hitlag": "0",
+					"hitstun": "4",
+					"blockstun": "5",
+					"knockback": "(0, 0)",
+					"size": "(1, 1, 0.5)",
+					"location": "(1, 0, 0)",
+					"blockKnockback": "(0, 0)"
 				}
 			]
 		},
@@ -72,19 +70,17 @@
 			"animationName": "heavy_punch",
 			"hitboxes": [
 				{
-					"hitbox": {
-						"lifespan": "15",
-						"damage": "10",
-						"chipDamage": "0",
-						"hitlag": "0",
-						"hitstun": "15",
-						"blockstun": "10",
-						"knockback": "(2, 2)",
-						"size": "(1, 1, 0.5)",
-						"location": "(1, 0, 0)",
-						"blockKnockback": "(1, 0)"
-					},
-					"firstActiveFrame": "12"
+					"lifespan": "15",
+					"firstActiveFrame": "15",
+					"damage": "10",
+					"chipDamage": "0",
+					"hitlag": "0",
+					"hitstun": "15",
+					"blockstun": "10",
+					"knockback": "(2, 2)",
+					"size": "(1, 1, 0.5)",
+					"location": "(1, 0, 0)",
+					"blockKnockback": "(1, 0)"
 				}
 			]
 		}

@@ -144,18 +144,19 @@ class commandMove:
 		var text = ""
 		for box in hitboxes:
 			# I want to remove the trailing commas at some point
-			text = "\t".repeat(numIndents + 3) + "\"hitbox\": " + text + box.budget_stringify(numIndents + 3) + ",\n"
-			text = text + "\t".repeat(numIndents + 3) + "\"firstActiveFrame\": " + "\"" + str(hitboxes[box]) + "\""
-			text = "\t".repeat(numIndents + 2) + hitbox.create_section(text, numIndents + 2)
+			text = text + box.budget_stringify(numIndents + 2)
+			
 			if box != hitboxes.keys()[-1]:
 				text = text + ","
 			text = text + "\n"
+			
 		text = "\t".repeat(numIndents + 1) + "\"hitboxes\": " + commandMove.create_array(text, numIndents + 1)
 		return text
 	func stringify_inputs(numIndents):
 		var text = ""
 		for input in commandInputs:
 			text = text + input.budget_stringify(numIndents + 1)
+			
 			if input != commandInputs[-1]:
 				text = text + ","
 			text = text + "\n"
@@ -171,6 +172,7 @@ class hitbox:
 	var location:Vector3
 	var lifetime = 0
 	var lifespan:int
+	var firstActiveFrame:int
 	var damage:int
 	# Damage dealt on blocking target
 	var chipDamage:int
@@ -191,6 +193,7 @@ class hitbox:
 	func budget_stringify(numIndents):
 		var text = ""
 		text = text + hitbox.print_property("lifespan", str(lifespan), true, numIndents)
+		text = text + hitbox.print_property("firstActiveFrame", str(lifespan), true, numIndents)
 		text = text + hitbox.print_property("damage", str(damage), true, numIndents)
 		text = text + hitbox.print_property("chipDamage", str(chipDamage), true, numIndents)
 		text = text + hitbox.print_property("hitlag", str(hitlag), true, numIndents)
@@ -200,7 +203,7 @@ class hitbox:
 		text = text + hitbox.print_property("size", str(size), true, numIndents)
 		text = text + hitbox.print_property("location", str(location), true, numIndents)
 		text = text + hitbox.print_property("blockKnockback", str(blockKnockback), false, numIndents)
-		text = hitbox.create_section(text, numIndents)
+		text = "\t".repeat(numIndents) + hitbox.create_section(text, numIndents)
 		return text
 	static func create_section(text, numIndents):
 		text = "{\n" + text + "\n" + "\t".repeat(numIndents) + "}"
@@ -368,14 +371,15 @@ func update_state():
 		for input in inputBuffer:
 			if input.inputButton != button.NONE:
 				bufferedInput = input
-		
-	for box in activeHitboxes.keys():
+	
+	# This is how you erase dictionary entries without undefined behaviour in GDScript apparently.
+	for i in range(activeHitboxes.keys().size() - 1, -1, -1):
+		var box = activeHitboxes.keys()[i]
 		box.lifetime += 1
 		if box.lifetime > box.lifespan:
 			box.active = false
 			box.lifetime = 0
 			remove_child(activeHitboxes[box])
-			# apparently erasing elements while iterating over an array results in undefined behaviour
 			activeHitboxes.erase(box)
 			break
 		for hitPlayer in activeHitboxes[box].get_overlapping_bodies():
@@ -384,7 +388,6 @@ func update_state():
 				box.active = false
 				box.lifetime = 0
 				remove_child(activeHitboxes[box])
-				# apparently erasing elements while iterating over an array results in undefined behaviour
 				activeHitboxes.erase(box)
 	
 	for box in curMove.hitboxes:
@@ -558,9 +561,10 @@ func process_input(bufInput:motionInput):
 		else:
 			curDir = direction.NEUTRAL
 	
-	for input in inputBuffer:
+	# This is how you erase elements of an array without undefined behaviour in GDScript apparently.
+	for i in range(inputBuffer.size() - 1, -1, -1):
+		var input = inputBuffer[i]
 		if input.lifetime >= INPUT_BUFFER_SIZE:
-			# apparently erasing elements while iterating over an array results in undefined behaviour
 			inputBuffer.erase(input)
 		input.lifetime += 1
 	
@@ -700,9 +704,7 @@ func load_inputs(inputData):
 
 func load_hitboxes(hitboxData):
 	var parsedHitboxes = {}
-	for loadedHitboxEntry in hitboxData:
-		var loadedHitbox = loadedHitboxEntry["hitbox"]
-		
+	for loadedHitbox in hitboxData:
 		var parsedSize = parse_vector(loadedHitbox["size"])
 		var parsedLocation = parse_vector(loadedHitbox["location"])
 		var parsedHitbox = hitbox.new(parsedSize, parsedLocation, int(loadedHitbox["lifespan"]))
@@ -719,7 +721,7 @@ func load_hitboxes(hitboxData):
 		parsedHitbox.knockback = parsedKnockback
 		parsedHitbox.blockKnockback = parsedBlockKnockback
 		
-		parsedHitboxes[parsedHitbox] = int(loadedHitboxEntry["firstActiveFrame"])
+		parsedHitboxes[parsedHitbox] = int(loadedHitbox["firstActiveFrame"])
 	return parsedHitboxes
 
 func parse_vector(string):

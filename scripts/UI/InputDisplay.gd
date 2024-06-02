@@ -1,6 +1,5 @@
 extends Label
 
-
 var fighterName = "../../KillerBean"
 var fighterNode
 
