@@ -29,6 +29,8 @@ func _ready():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
+	if player1 == null or player2 == null:
+		return
 	var distance = abs(player2.position.x - player1.position.x)
 	var targetPos = get_target_position(distance)
 		

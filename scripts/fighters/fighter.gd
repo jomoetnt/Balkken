@@ -21,6 +21,7 @@ var PREJUMP_FRAMES = 5
 var LAND_FRAMES = 4
 var MAX_HEALTH = 500
 var FIGHTER_NAME = "jeff"
+var CHARACTER_FILE:String
 
 var health = MAX_HEALTH
 var mana = 0
@@ -70,7 +71,7 @@ var activeHitboxes = {}
 
 enum direction {UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, NEUTRAL}
 enum button {LIGHT_PUNCH, LIGHT_KICK, HEAVY_PUNCH, HEAVY_KICK, ENHANCE, THROW, THROW_SWAP, ULTIMATE_IGNITE, START, READY, NONE}
-enum inputFlag {CANCELLED, BUFFERED, DROPPED}
+enum inputFlag {CANCELLED, BUFFERED, DROPPED, BUFFERED_ACTIVATE}
 
 var curDir = direction.NEUTRAL
 var curBtn = button.NONE
@@ -109,7 +110,7 @@ class commandMove:
 	var startupFrames:int
 	var activeFrames:int
 	var recoveryFrames:int
-	# Moves that can be cancelled into from this move. Reserved
+	# Moves that can be cancelled into from this move.
 	var cancelMoves:Array
 	var animationName:StringName
 	var moveName:StringName
@@ -135,22 +136,22 @@ class commandMove:
 		text = text + hitbox.print_property("startup", str(startupFrames), true, numIndents)
 		text = text + hitbox.print_property("active", str(activeFrames), true, numIndents)
 		text = text + hitbox.print_property("recovery", str(recoveryFrames), true, numIndents)
-		text = text + hitbox.print_property("cancellableInto", str(cancelMoves), true, numIndents)
+		text = text + "\t".repeat(numIndents + 1) + "\"cancellableInto\": " + str(cancelMoves) + ",\n"
 		text = text + hitbox.print_property("animationName", str(animationName), true, numIndents)
-		text = text + stringify_hitboxes(numIndents)
+		text = text + commandMove.stringify_hitboxes("hitboxes", numIndents, hitboxes)
 		text = "\t".repeat(numIndents) + hitbox.create_section(text, numIndents)
 		return text
-	func stringify_hitboxes(numIndents):
+	static func stringify_hitboxes(label, numIndents, list):
 		var text = ""
-		for box in hitboxes:
+		for box in list:
 			# I want to remove the trailing commas at some point
 			text = text + box.budget_stringify(numIndents + 2)
 			
-			if box != hitboxes.keys()[-1]:
+			if box != list.keys()[-1]:
 				text = text + ","
 			text = text + "\n"
 			
-		text = "\t".repeat(numIndents + 1) + "\"hitboxes\": " + commandMove.create_array(text, numIndents + 1)
+		text = "\t".repeat(numIndents + 1) + "\"" + label + "\": " + commandMove.create_array(text, numIndents + 1)
 		return text
 	func stringify_inputs(numIndents):
 		var text = ""
@@ -228,15 +229,10 @@ func _ready():
 	else:
 		directionFacing = direction.LEFT
 	
-	var characterData = JSON.parse_string(read_from_file("res://data/killer_bean.json"))
+	var characterData = JSON.parse_string(read_from_file(CHARACTER_FILE))
 	load_character(characterData)
 	
 	healthSignal.emit(health)
-	
-	var mList = []
-	#_init_moves(mList)
-	for move in mList:
-		moves[move.moveName] = move
 	
 	for moveName in moves:
 		var move = moves[moveName]
@@ -247,36 +243,24 @@ func _ready():
 	
 	curMove = moves["Nothing"]
 	
-func _init_moves(list):
-	var nothing = commandMove.new(0, 0, 0, "BlendSpace1D", "Nothing")
-	nothing.commandInputs.append(motionInput.new(direction.NEUTRAL, button.NONE))
-	list.append(nothing)
-	var slp = commandMove.new(0, 0, 0, "light_punch", "Light Punch")
-	slp.commandInputs.append(motionInput.new(direction.NEUTRAL, button.LIGHT_PUNCH))
-	slp.moveState = slp.state.STANDING
-	list.append(slp)
-	var shp = commandMove.new(0, 0, 0, "heavy_punch", "Heavy Punch")
-	shp.commandInputs.append(motionInput.new(direction.NEUTRAL, button.HEAVY_PUNCH))
-	shp.moveState = shp.state.STANDING
-	list.append(shp)
 
 func _physics_process(delta):
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
 	update_state()
+	sliding = false
 
 	# Slide players if they collide with each other
 	if move_and_slide():
 		var collision = get_last_slide_collision()
-		sliding = false
 		for j in collision.get_collision_count():
 			var collider = collision.get_collider(j)
 			if collider is fighter and collider != self:
 				position.x -= scale.x * delta * SLIDE_VELOCITY
 				collider.position.x -= collider.scale.x * delta * SLIDE_VELOCITY
 				if position.y > collider.position.y + EPSILON and velocity.y < 0:
-					position.y = collider.hurtboxNode.shape.size.y + collider.position.y + delta
+					position.y += (position.y - collider.position.y) * delta
 				sliding = true
 				collider.sliding = true
 	
@@ -568,23 +552,12 @@ func process_input(bufInput:motionInput):
 			inputBuffer.erase(input)
 		input.lifetime += 1
 	
-	if !actionable:
-		if _cancel_move(curInput):
-			curFlags.append(inputFlag.CANCELLED)
-		else:
-			curFlags.append(inputFlag.DROPPED)
-		inputBuffer.append(curInput)
-		inputSignal.emit(str(curInput), curFlags)
-		return	
-	
 	if curInput.inputButton == button.NONE and bufInput.inputButton != button.NONE:
 		curInput = bufInput
-		curFlags.append(inputFlag.BUFFERED)
+		curFlags.append(inputFlag.BUFFERED_ACTIVATE)
 		inputBuffer.clear()
 	
-	inputSignal.emit(str(curInput), curFlags)
-	
-	if !is_jumping() and curMove == moves["Nothing"] and anim_state.get_current_node() != "jump_land" and curInput.inputButton == button.NONE:
+	if !is_jumping() and curMove == moves["Nothing"] and anim_state.get_current_node() != "jump_land" and curInput.inputButton == button.NONE and actionable:
 		handle_movement(curInput, WALK_SPEED * input_dir.x)
 	else:
 		var curMotion = inputBuffer.duplicate(true)
@@ -598,12 +571,28 @@ func process_input(bufInput:motionInput):
 			for move in potentialMoves:
 				if move.moveState == move.state.JUMPING:
 					execute_move(move)
-					return
+					break
 		else:
 			for move in potentialMoves:
 				if move.moveState == move.state.STANDING:
+					if !actionable:
+						if move.moveName in curMove.cancelMoves:
+							actionable = true
+							actionableTimer = 0
+							execute_move(move)
+							curFlags.append(inputFlag.CANCELLED)
+						else:
+							if actionableTimer < INPUT_BUFFER_SIZE:
+								curFlags.append(inputFlag.BUFFERED)
+							else:
+								curFlags.append(inputFlag.DROPPED)
+						inputBuffer.append(curInput)
+						inputSignal.emit(str(curInput), curFlags)
+						return
 					execute_move(move)
-					return
+					break
+	if curFlags != [inputFlag.BUFFERED_ACTIVATE]:
+		inputSignal.emit(str(curInput), curFlags)
 
 func are_same_inputs(input1:motionInput, input2:motionInput):
 	if input1 == null or input2 == null:
@@ -645,9 +634,8 @@ func are_same_motions(motion1:Array, motion2:Array):
 			return false
 	return true
 
-# Virtual function for cancelling certain moves into others
-func _cancel_move(_curInput:motionInput):
-	pass
+func save_character():
+	write_to_file(CHARACTER_FILE, budget_stringify(0))
 
 func budget_stringify(numIndents):
 	var text = hitbox.print_property("characterName", str(FIGHTER_NAME), true, numIndents)
@@ -657,8 +645,26 @@ func budget_stringify(numIndents):
 	text = text + hitbox.print_property("jumpSpeedHorizontal", str(JUMP_HORIZONTAL_SPEED), true, numIndents)
 	text = text + hitbox.print_property("prejump", str(PREJUMP_FRAMES), true, numIndents)
 	text = text + hitbox.print_property("landing", str(LAND_FRAMES), true, numIndents)
+	text = text + "\t".repeat(numIndents + 1) + "\"hurtboxes\": " + stringify_hurtboxes(numIndents + 1) + ",\n"
 	text = text + stringify_moves(numIndents)
 	return hitbox.create_section(text, numIndents)
+
+func stringify_hurtboxes(numIndents):
+	var text = ""
+	
+	for hurtbox in hurtboxes:
+		var curText = ""
+		curText = curText + hitbox.print_property("state", hurtbox, true, numIndents)
+		curText = curText + hitbox.print_property("size", str(hurtboxes[hurtbox].size), true, numIndents)
+		curText = curText + hitbox.print_property("location", str(hurtboxes[hurtbox].location), false, numIndents)
+		text = text + "\t".repeat(numIndents + 1) + hitbox.create_section(curText, numIndents + 1)
+		if hurtbox != hurtboxes.keys()[-1]:
+			text = text + ","
+		text = text + "\n"
+	
+	text = commandMove.create_array(text, numIndents)
+	
+	return text
 
 func stringify_moves(numIndents):
 	var text = ""
@@ -679,7 +685,18 @@ func load_character(data):
 	JUMP_HORIZONTAL_SPEED = float(data["jumpSpeedHorizontal"])
 	PREJUMP_FRAMES = int(data["prejump"])
 	LAND_FRAMES = int(data["landing"])
+	hurtboxes = load_hurtboxes(data["hurtboxes"])
 	moves = load_moves(data["moves"])
+
+func load_hurtboxes(hurtboxData):
+	var parsedHurtboxes = {}
+	for loadedHurtbox in hurtboxData:
+		var parsedSize = parse_vector(loadedHurtbox["size"])
+		var parsedLocation = parse_vector(loadedHurtbox["location"])
+		var parsedHurtbox = hitbox.new(parsedSize, parsedLocation, 0)
+		
+		parsedHurtboxes[loadedHurtbox["state"]] = parsedHurtbox
+	return parsedHurtboxes
 
 func load_moves(moveData):
 	var parsedMoves = {}
@@ -688,7 +705,7 @@ func load_moves(moveData):
 			loadedMove["animationName"], loadedMove["name"])
 		parsedMove.moveState = loadedMove["state"]
 		parsedMove.commandInputs = load_inputs(loadedMove["inputs"])
-		# parsedMove.cancelMoves = loadedMove["cancellableInto"]
+		parsedMove.cancelMoves = loadedMove["cancellableInto"]
 		parsedMove.animationName = loadedMove["animationName"]
 		parsedMove.hitboxes = load_hitboxes(loadedMove["hitboxes"])
 		parsedMoves[parsedMove.moveName] = parsedMove

@@ -6,6 +6,18 @@
 	"jumpSpeedHorizontal": "2",
 	"prejump": "5",
 	"landing": "4",
+	"hurtboxes": [
+		{
+		"state": "Standing",
+		"size": "(0.735, 1.413, 0.5)",
+		"location": "(0.048, -0.12, 0.2)"
+		},
+		{
+		"state": "Crouching",
+		"size": "(0.735, 1.22, 0.5)",
+		"location": "(0.048, -0.23, 0.2)"
+		}
+	],
 	"moves": [
 		{
 			"name": "Nothing",
@@ -19,7 +31,7 @@
 			"startup": "0",
 			"active": "0",
 			"recovery": "0",
-			"cancellableInto": "[]",
+			"cancellableInto": [],
 			"animationName": "BlendSpace1D",
 			"hitboxes": [
 			]
@@ -36,7 +48,7 @@
 			"startup": "0",
 			"active": "0",
 			"recovery": "17",
-			"cancellableInto": "[]",
+			"cancellableInto": ["Light Punch"],
 			"animationName": "light_punch",
 			"hitboxes": [
 				{
@@ -66,7 +78,7 @@
 			"startup": "10",
 			"active": "0",
 			"recovery": "26",
-			"cancellableInto": "[]",
+			"cancellableInto": [],
 			"animationName": "heavy_punch",
 			"hitboxes": [
 				{
