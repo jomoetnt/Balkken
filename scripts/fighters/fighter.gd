@@ -1,14 +1,15 @@
 class_name fighter extends CharacterBody3D
 
-# System constants
+# System constants (yes I know 'const' exists)
 var SLOWMO_THRESHOLD = 1.0
 var SLOWMO_TIMESCALE = 0.1
 var SLOWMO_LENGTH_MULTIPLIER = 10
 var INPUT_THRESHOLD = 0.5
 var INPUT_BUFFER_SIZE = 7
+var AUDIO_PATH = "res://assets/audio/"
 
 # Universal character constants
-var SLIDE_VELOCITY = 0.5
+var SLIDE_VELOCITY = 3
 var EPSILON = 0.1
 var MAX_MANA = 10
 var CROUCH_DAMAGE = 1.5
@@ -32,23 +33,41 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var animation_tree = $AnimationTree
 @onready var anim_state = $AnimationTree.get("parameters/playback")
 @onready var anim_player = $AnimationPlayer
+@onready var audio_player:AudioStreamPlayer = self.get_parent().get_node("AudioStreamPlayer")
+
+# filename: start timestamp
+var sounds = {
+	"pipe.ogg": 0.35,
+	"Alarm.ogg": 0.26,
+	"aneurysm.ogg": 0.08,
+	"boowomp.ogg": 0.53,
+	"cryman.ogg": 0.21,
+	"help.ogg": 6.53,
+	"lolxd.ogg": 0.3,
+	"protip.ogg": 0,
+	"prowler.ogg": 0,
+	"Running.ogg": 0.22,
+	"TikTok snoring.ogg": 0.18,
+	"Vine Boom.ogg": 0.21,
+	"Waterphone.ogg": 0.42,
+}
 
 var actionable = true
 var actionableTimer = 0
+
+var slidingDirection = direction.NEUTRAL
 
 var slowmoTimer = 0
 
 var hurtboxNode:CollisionShape3D
 
 @export var player = 1
+var otherPlayer:fighter
 
 # StringName: commandMove
 var moves:Dictionary
 
-var hurtboxes = {
-	"Standing": hitbox.new(Vector3.ZERO, Vector3.ZERO, 0),
-	"Crouching": hitbox.new(Vector3.ZERO, Vector3.ZERO, 0)
-}
+var hurtboxes = {}
 
 # Q = quarter, C = circle, R = right, L = left
 var motions = {
@@ -82,8 +101,8 @@ var movementLocked = false
 
 var inputBuffer:Array[motionInput]
 
-var sliding = false
 var blocking = false
+var sliding = false
 
 signal inputSignal(inputString, flags)
 signal healthSignal(healthInt)
@@ -215,10 +234,8 @@ class hitbox:
 			text = text + ",\n"
 		return text
 	
-# kinda messy
 func _ready():
 	get_node("../Camera3D").lockMovement.connect(_lock_movement)
-	
 	get_parent().changeDirSignal.connect(_change_direction)
 	
 	hurtboxNode = CollisionShape3D.new()
@@ -234,39 +251,50 @@ func _ready():
 	
 	healthSignal.emit(health)
 	
+	map_motion_move()
+	
+	curMove = moves["Nothing"]
+	update_hurtbox("Standing")
+	
+func map_motion_move():
 	for moveName in moves:
 		var move = moves[moveName]
 		if motionMap.has(move.commandInputs):
 			motionMap[move.commandInputs].append(move)
 		else:
 			motionMap[move.commandInputs] = [move]
-	
-	curMove = moves["Nothing"]
-	
 
 func _physics_process(delta):
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
 	update_state()
-	sliding = false
-
-	# Slide players if they collide with each other
-	if move_and_slide():
-		var collision = get_last_slide_collision()
-		for j in collision.get_collision_count():
-			var collider = collision.get_collider(j)
-			if collider is fighter and collider != self:
-				position.x -= scale.x * delta * SLIDE_VELOCITY
-				collider.position.x -= collider.scale.x * delta * SLIDE_VELOCITY
-				if position.y > collider.position.y + EPSILON and velocity.y < 0:
-					position.y += (position.y - collider.position.y) * delta
-				sliding = true
-				collider.sliding = true
 	
-	if sliding:
-		velocity.x = SLIDE_VELOCITY * -scale.x
-							
+	#if sliding or otherPlayer.sliding:
+		#if abs(position.x - otherPlayer.position.x) > hurtboxNode.shape.size.x + EPSILON:
+			#sliding = false
+			#otherPlayer.sliding = false
+			#velocity.x = 0
+			#otherPlayer.velocity.x = 0
+	
+	move_and_slide()
+		#for i in get_slide_collision_count():
+			#var collision = get_slide_collision(i)
+			#for j in collision.get_collision_count():
+				#var collider = collision.get_collider(j)
+				#if collider == otherPlayer and player == 1:
+					#velocity.x = SLIDE_VELOCITY * scale.x
+					#otherPlayer.velocity.x = otherPlayer.SLIDE_VELOCITY * otherPlayer.scale.x
+					#if position.y > otherPlayer.position.y + EPSILON:
+						#position.y = otherPlayer.position.y + otherPlayer.hurtboxNode.shape.size.y
+					#elif otherPlayer.position.y > position.y + EPSILON:
+						#otherPlayer.position.y = position.y + hurtboxNode.shape.size.y
+					#sliding = true
+
+func play_sound(audioName):
+	audio_player.stream = AudioStreamOggVorbis.load_from_file(AUDIO_PATH + audioName)
+	audio_player.play(sounds[audioName])
+
 func player_hurt(hurter:hitbox):
 	if is_blocking_standing():
 		health -= hurter.chipDamage
@@ -277,6 +305,7 @@ func player_hurt(hurter:hitbox):
 		anim_state.travel("block_standing")
 		curMove = moves["Block Standing"]
 		healthSignal.emit(health)
+		play_sound("Vine Boom.ogg")
 		blocking = true
 	elif is_blocking_crouching():
 		health -= hurter.chipDamage * CROUCH_DAMAGE
@@ -287,6 +316,7 @@ func player_hurt(hurter:hitbox):
 		anim_state.travel("block_crouching")
 		curMove = moves["Block Crouching"]
 		healthSignal.emit(health)
+		play_sound("TikTok snoring.ogg")
 		blocking = true
 	else:
 		if anim_state.get_current_node() != "crouch_idle":
@@ -300,6 +330,7 @@ func player_hurt(hurter:hitbox):
 		var length = hurter.knockback.length()
 		anim_state.travel("hurt_standing")
 		healthSignal.emit(health)
+		play_sound("help.ogg")
 		if length > SLOWMO_THRESHOLD:
 			Engine.time_scale = SLOWMO_TIMESCALE
 			slowmoTimer = round(length) * SLOWMO_LENGTH_MULTIPLIER
@@ -348,6 +379,10 @@ func update_state():
 		if anim_state.get_current_node() == "jump":
 			velocity.y = JUMP_VELOCITY
 			velocity.x = curMove.data
+		else:
+			anim_state.travel("BlendSpace1D")
+			animation_tree.set("parameters/BlendSpace1D/blend_position", 0)
+			
 		curMove = moves["Nothing"]
 		
 	if actionableTimer == -1:
@@ -409,11 +444,11 @@ func update_state():
 		curMove = moves["Nothing"]
 		anim_state.travel("BlendSpace1D")
 		
-	if anim_state.get_current_node() == "jump_idle" and is_on_floor() and !sliding:
+	if anim_state.get_current_node() == "jump_idle" and is_on_floor():
 		anim_state.travel("jump_land")
 		actionable = false
 		actionableTimer = LAND_FRAMES
-		velocity.x = 0
+	
 
 func get_animation_frames():
 	var frames = round(anim_state.get_current_play_position() * 60)
@@ -429,6 +464,7 @@ func crouch():
 	anim_state.travel("crouch")
 	curMove = moves["Nothing"]
 	update_hurtbox("Crouching")
+	play_sound("aneurysm.ogg")
 	
 func walk(speed):
 	anim_state.travel("BlendSpace1D")
@@ -458,12 +494,14 @@ func handle_movement(motInput:motionInput, speed):
 			walk(0)
 		direction.RIGHT, direction.LEFT:
 			walk(speed)
+			play_sound("Running.ogg")
 		direction.UPLEFT, direction.UP, direction.UPRIGHT:
 			velocity.x = 0
 			anim_state.travel("jump")
 			actionable = false
 			actionableTimer = PREJUMP_FRAMES
 			curMove.data = speed * JUMP_HORIZONTAL_SPEED
+			play_sound("pipe.ogg")
 		direction.DOWNLEFT, direction.DOWN, direction.DOWNRIGHT:
 			if anim_state.get_current_node() != "crouch_idle":
 				crouch()

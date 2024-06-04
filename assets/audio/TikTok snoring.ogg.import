@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://glwty0nphvx2"
+path="res://.godot/imported/TikTok snoring.ogg-e8313ab268db31aced99ec47d426cdef.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/audio/TikTok snoring.ogg"
+dest_files=["res://.godot/imported/TikTok snoring.ogg-e8313ab268db31aced99ec47d426cdef.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
