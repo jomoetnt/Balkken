@@ -187,4 +187,4 @@ text = "Exit Match"
 alignment = 0
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
-volume_db = -80.0
+volume_db = -22.0

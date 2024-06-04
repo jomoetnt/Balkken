@@ -379,9 +379,6 @@ func update_state():
 		if anim_state.get_current_node() == "jump":
 			velocity.y = JUMP_VELOCITY
 			velocity.x = curMove.data
-		else:
-			anim_state.travel("BlendSpace1D")
-			animation_tree.set("parameters/BlendSpace1D/blend_position", 0)
 			
 		curMove = moves["Nothing"]
 		
@@ -448,6 +445,7 @@ func update_state():
 		anim_state.travel("jump_land")
 		actionable = false
 		actionableTimer = LAND_FRAMES
+		velocity.x = 0
 	
 
 func get_animation_frames():
@@ -491,10 +489,10 @@ func walk(speed):
 func handle_movement(motInput:motionInput, speed):
 	match motInput.inputDirection:
 		direction.NEUTRAL:
-			walk(0)
+			if anim_state.get_current_node() != "jump_land":
+				walk(0)
 		direction.RIGHT, direction.LEFT:
 			walk(speed)
-			play_sound("Running.ogg")
 		direction.UPLEFT, direction.UP, direction.UPRIGHT:
 			velocity.x = 0
 			anim_state.travel("jump")
@@ -595,7 +593,7 @@ func process_input(bufInput:motionInput):
 		curFlags.append(inputFlag.BUFFERED_ACTIVATE)
 		inputBuffer.clear()
 	
-	if !is_jumping() and curMove == moves["Nothing"] and anim_state.get_current_node() != "jump_land" and curInput.inputButton == button.NONE and actionable:
+	if !is_jumping() and curMove == moves["Nothing"] and curInput.inputButton == button.NONE and actionable:
 		handle_movement(curInput, WALK_SPEED * input_dir.x)
 	else:
 		var curMotion = inputBuffer.duplicate(true)
@@ -620,7 +618,7 @@ func process_input(bufInput:motionInput):
 							execute_move(move)
 							curFlags.append(inputFlag.CANCELLED)
 						else:
-							if actionableTimer < INPUT_BUFFER_SIZE:
+							if actionableTimer <= INPUT_BUFFER_SIZE:
 								curFlags.append(inputFlag.BUFFERED)
 							else:
 								curFlags.append(inputFlag.DROPPED)
