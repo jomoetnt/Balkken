@@ -69,6 +69,8 @@ bg_color = Color(0.517647, 0.298039, 0.298039, 1)
 [node name="place" type="Node3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.994554, -0.0772501, 0.536096)
 script = ExtResource("1_xv20c")
+metadata/_edit_vertical_guides_ = [960.0]
+metadata/_edit_horizontal_guides_ = [-2.0]
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(2.565, 0, 0, 0, 2.565, 0, 0, 0, 2.565, 0, -1.2977, 0)
@@ -381,9 +383,9 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-color = Color(0.129558, 0.129558, 0.129558, 0.227451)
+color = Color(0.129412, 0.129412, 0.129412, 0.372549)
 
-[node name="PanelContainer" type="PanelContainer" parent="PauseMenu/Shade"]
+[node name="BoxMenu" type="PanelContainer" parent="PauseMenu/Shade"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -396,49 +398,112 @@ offset_right = -160.0
 offset_bottom = -0.52002
 theme_override_styles/panel = SubResource("StyleBoxFlat_br2sa")
 
-[node name="MarginContainer" type="MarginContainer" parent="PauseMenu/Shade/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="PauseMenu/Shade/BoxMenu"]
 layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="OptionMenu" type="VBoxContainer" parent="PauseMenu/Shade/PanelContainer/MarginContainer"]
+[node name="OptionMenu" type="VBoxContainer" parent="PauseMenu/Shade/BoxMenu/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="Label" type="Label" parent="PauseMenu/Shade/PanelContainer/MarginContainer/OptionMenu"]
+[node name="Label" type="Label" parent="PauseMenu/Shade/BoxMenu/MarginContainer/OptionMenu"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Paused"
 
-[node name="ResumeButton" type="Button" parent="PauseMenu/Shade/PanelContainer/MarginContainer/OptionMenu"]
+[node name="ResumeButton" type="Button" parent="PauseMenu/Shade/BoxMenu/MarginContainer/OptionMenu"]
 layout_mode = 2
 theme_override_constants/outline_size = 0
 theme_override_font_sizes/font_size = 36
 text = "Resume"
 alignment = 0
 
-[node name="MoveListButton" type="Button" parent="PauseMenu/Shade/PanelContainer/MarginContainer/OptionMenu"]
+[node name="MoveListButton" type="Button" parent="PauseMenu/Shade/BoxMenu/MarginContainer/OptionMenu"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Move List"
 alignment = 0
 
-[node name="SettingsButton" type="Button" parent="PauseMenu/Shade/PanelContainer/MarginContainer/OptionMenu"]
+[node name="SettingsButton" type="Button" parent="PauseMenu/Shade/BoxMenu/MarginContainer/OptionMenu"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Settings"
 alignment = 0
 
-[node name="ExitMatchButton" type="Button" parent="PauseMenu/Shade/PanelContainer/MarginContainer/OptionMenu"]
+[node name="ExitMatchButton" type="Button" parent="PauseMenu/Shade/BoxMenu/MarginContainer/OptionMenu"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Exit Match"
 alignment = 0
 
+[node name="Movelist" type="VBoxContainer" parent="PauseMenu/Shade"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="ColorRect" type="ColorRect" parent="PauseMenu/Shade/Movelist"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+color = Color(1, 1, 1, 0)
+
+[node name="HSeparator" type="HSeparator" parent="PauseMenu/Shade/Movelist"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PauseMenu/Shade/Movelist"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="PauseMenu/Shade/Movelist/HBoxContainer"]
+custom_minimum_size = Vector2(950, 0)
+layout_mode = 2
+
+[node name="PanelContainer" type="MarginContainer" parent="PauseMenu/Shade/Movelist/HBoxContainer/ScrollContainer"]
+custom_minimum_size = Vector2(950, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="P1moves" type="VBoxContainer" parent="PauseMenu/Shade/Movelist/HBoxContainer/ScrollContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="HSeparator" type="HSeparator" parent="PauseMenu/Shade/Movelist/HBoxContainer"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="ScrollContainer2" type="ScrollContainer" parent="PauseMenu/Shade/Movelist/HBoxContainer"]
+clip_contents = false
+custom_minimum_size = Vector2(950, 0)
+layout_mode = 2
+
+[node name="PanelContainer" type="MarginContainer" parent="PauseMenu/Shade/Movelist/HBoxContainer/ScrollContainer2"]
+custom_minimum_size = Vector2(950, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 5
+
+[node name="P2moves" type="VBoxContainer" parent="PauseMenu/Shade/Movelist/HBoxContainer/ScrollContainer2/PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
-volume_db = -22.0
 
 [node name="Timer" type="Timer" parent="."]
 one_shot = true

@@ -170,7 +170,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Master"
 
-[node name="TextEdit" type="HSlider" parent="TabContainer/Audio/VBoxContainer"]
+[node name="MasterSlider" type="HSlider" parent="TabContainer/Audio/VBoxContainer"]
 layout_mode = 2
 value = 70.0
 
@@ -183,7 +183,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Sound Effects"
 
-[node name="TextEdit2" type="HSlider" parent="TabContainer/Audio/VBoxContainer"]
+[node name="SFXSlider" type="HSlider" parent="TabContainer/Audio/VBoxContainer"]
 layout_mode = 2
 value = 70.0
 
@@ -196,7 +196,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Voicelines"
 
-[node name="TextEdit3" type="HSlider" parent="TabContainer/Audio/VBoxContainer"]
+[node name="VoiceSlider" type="HSlider" parent="TabContainer/Audio/VBoxContainer"]
 layout_mode = 2
 value = 70.0
 
@@ -209,7 +209,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Music"
 
-[node name="TextEdit4" type="HSlider" parent="TabContainer/Audio/VBoxContainer"]
+[node name="MusicSlider" type="HSlider" parent="TabContainer/Audio/VBoxContainer"]
 layout_mode = 2
 value = 70.0
 
@@ -304,7 +304,9 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 20.0
 offset_top = 621.0
+offset_right = -20.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -403,6 +405,7 @@ texture = SubResource("PlaceholderTexture2D_1o2s5")
 [connection signal="text_submitted" from="TabContainer/Video/VBoxContainer/HSplitContainer/MarginContainer2/HeightText" to="." method="_on_height_text_text_submitted"]
 [connection signal="item_selected" from="TabContainer/Video/VBoxContainer/VsyncButton" to="." method="_on_vsync_button_item_selected"]
 [connection signal="item_selected" from="TabContainer/Video/VBoxContainer/ModeButton" to="." method="_on_mode_button_item_selected"]
+[connection signal="drag_ended" from="TabContainer/Audio/VBoxContainer/MasterSlider" to="." method="_on_master_slider_drag_ended"]
 [connection signal="pressed" from="TabContainer/Input/VBoxContainer/ProfilesButton" to="." method="_on_profiles_button_pressed"]
 [connection signal="pressed" from="TabContainer/Input/VBoxContainer/SetupButton" to="." method="_on_setup_button_pressed"]
 [connection signal="pressed" from="TopBar/HBoxContainer/BackButton" to="." method="_on_button_pressed"]

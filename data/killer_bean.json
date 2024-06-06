@@ -95,6 +95,48 @@
 					"blockKnockback": "(1, 0)"
 				}
 			]
+		},
+		{
+			"name": "cry",
+			"inputs": [
+				{
+					"direction": "DOWN",
+					"button": "NONE"
+				},
+				{
+					"direction": "DOWNRIGHT",
+					"button": "NONE"
+				},
+				{
+					"direction": "RIGHT",
+					"button": "NONE"
+				},
+				{
+					"direction": "NEUTRAL",
+					"button": "LIGHT_PUNCH"
+				}
+			],
+			"state": "STANDING",
+			"startup": "0",
+			"active": "0",
+			"recovery": "5",
+			"cancellableInto": [],
+			"animationName": "crouch",
+			"hitboxes": [
+				{
+					"lifespan": "15",
+					"firstActiveFrame": "15",
+					"damage": "50",
+					"chipDamage": "30",
+					"hitlag": "0",
+					"hitstun": "15",
+					"blockstun": "10",
+					"knockback": "(5, 2)",
+					"size": "(1, 1, 0.5)",
+					"location": "(1, 0, 0)",
+					"blockKnockback": "(1, 0)"
+				}
+			]
 		}
 	]
 }

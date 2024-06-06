@@ -6,6 +6,7 @@ var SLOWMO_TIMESCALE = 0.1
 var SLOWMO_LENGTH_MULTIPLIER = 10
 var INPUT_THRESHOLD = 0.5
 var INPUT_BUFFER_SIZE = 7
+var INPUT_HISTORY_SIZE = 30
 var AUDIO_PATH = "res://assets/audio/"
 
 # Universal character constants
@@ -26,6 +27,8 @@ var CHARACTER_FILE:String
 
 var health = MAX_HEALTH
 var mana = 0
+
+var test = 0
 
 # Get the gravity from the project settings to be synced with RigidBody nodes.
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -49,7 +52,7 @@ var sounds = {
 	"Running.ogg": 0.22,
 	"TikTok snoring.ogg": 0.18,
 	"Vine Boom.ogg": 0.21,
-	"Waterphone.ogg": 0.42,
+	"Waterphone.ogg": 0.42
 }
 
 var actionable = true
@@ -100,6 +103,7 @@ var directionFacing:direction
 var movementLocked = false
 
 var inputBuffer:Array[motionInput]
+var inputHistory:Array[motionInput]
 
 var blocking = false
 var sliding = false
@@ -134,6 +138,7 @@ class commandMove:
 	var animationName:StringName
 	var moveName:StringName
 	var moveState:state
+	var soundEffect:StringName
 	# hitbox:int, where the value is the frame it should be created.
 	var hitboxes:Dictionary
 	# Used for whatever information needs to be stored about a move, e.g. how charged
@@ -253,6 +258,24 @@ func _ready():
 	
 	map_motion_move()
 	
+	var listNode = get_parent().get_node("PauseMenu/Shade/Movelist/HBoxContainer/ScrollContainer/PanelContainer/P1moves") \
+		if player == 1 else get_parent().get_node("PauseMenu/Shade/Movelist/HBoxContainer/ScrollContainer2/PanelContainer/P2moves")
+	for motionSequence in motionMap:
+		if motionSequence == moves["Nothing"].commandInputs:
+			continue
+		for move in motionMap[motionSequence]:
+			var nameLabel:Label = Label.new()
+			nameLabel.text = move.moveName
+			nameLabel.theme = load("res://epic_theme.tres")
+			var inputLabel:Label = Label.new()
+			inputLabel.text = str(motionSequence) + " (" + commandMove.state.keys()[move.moveState] + ")"
+			inputLabel.theme = load("res://epic_theme.tres")
+			var divider:HSeparator = HSeparator.new()
+			divider.custom_minimum_size.y = 10
+			listNode.add_child(nameLabel)
+			listNode.add_child(inputLabel)
+			listNode.add_child(divider)
+	
 	curMove = moves["Nothing"]
 	update_hurtbox("Standing")
 	
@@ -293,7 +316,7 @@ func _physics_process(delta):
 
 func play_sound(audioName):
 	audio_player.stream = AudioStreamOggVorbis.load_from_file(AUDIO_PATH + audioName)
-	audio_player.play(sounds[audioName])
+	audio_player.play(sounds[str(audioName)])
 
 func player_hurt(hurter:hitbox):
 	if is_blocking_standing():
@@ -447,7 +470,6 @@ func update_state():
 		actionableTimer = LAND_FRAMES
 		velocity.x = 0
 	
-
 func get_animation_frames():
 	var frames = round(anim_state.get_current_play_position() * 60)
 	return frames
@@ -512,6 +534,8 @@ func execute_move(move:commandMove):
 	anim_state.travel(move.animationName)
 	if anim_state.get_current_node() == move.animationName:
 		anim_state.start(move.animationName)
+	if move.soundEffect != "":
+		play_sound(move.soundEffect)
 	actionableTimer = move.get_duration()
 	if actionableTimer > 0:
 		actionable = false
@@ -581,28 +605,42 @@ func process_input(bufInput:motionInput):
 		else:
 			curDir = direction.NEUTRAL
 	
-	# This is how you erase elements of an array without undefined behaviour in GDScript apparently.
 	for i in range(inputBuffer.size() - 1, -1, -1):
 		var input = inputBuffer[i]
 		if input.lifetime >= INPUT_BUFFER_SIZE:
 			inputBuffer.erase(input)
 		input.lifetime += 1
 	
+	for i in range(inputHistory.size() - 1, -1, -1):
+		var input = inputHistory[i]
+		if input.lifetime >= INPUT_HISTORY_SIZE:
+			inputHistory.erase(input)
+		input.lifetime += 1
+	
+	inputHistory.append(curInput)
+	
 	if curInput.inputButton == button.NONE and bufInput.inputButton != button.NONE:
 		curInput = bufInput
 		curFlags.append(inputFlag.BUFFERED_ACTIVATE)
 		inputBuffer.clear()
+		inputHistory.clear()
 	
 	if !is_jumping() and curMove == moves["Nothing"] and curInput.inputButton == button.NONE and actionable:
 		handle_movement(curInput, WALK_SPEED * input_dir.x)
 	else:
-		var curMotion = inputBuffer.duplicate(true)
+		var curMotion = inputHistory.duplicate(true)
 		curMotion.append(curInput)
 		
 		var potentialMoves = []
 		for motion in motionMap:
-			if are_same_motions(curMotion, motion) and motion in motionMap:
+			if are_same_motions(curMotion, motion) and motion in motionMap and not motionMap[motion].has(moves["Nothing"]):
 				potentialMoves.append_array(motionMap[motion])
+		if potentialMoves.is_empty():
+			curMotion = inputBuffer.duplicate(true)
+			curMotion.append(curInput)
+			for motion in motionMap:
+				if are_same_motions([curInput], motion) and motion in motionMap and not motionMap[motion].has(moves["Nothing"]):
+					potentialMoves.append_array(motionMap[motion])
 		if is_jumping():
 			for move in potentialMoves:
 				if move.moveState == move.state.JUMPING:
@@ -616,6 +654,7 @@ func process_input(bufInput:motionInput):
 							actionable = true
 							actionableTimer = 0
 							execute_move(move)
+							inputHistory.clear()
 							curFlags.append(inputFlag.CANCELLED)
 						else:
 							if actionableTimer <= INPUT_BUFFER_SIZE:
@@ -626,6 +665,7 @@ func process_input(bufInput:motionInput):
 						inputSignal.emit(str(curInput), curFlags)
 						return
 					execute_move(move)
+					inputHistory.clear()
 					break
 	if curFlags != [inputFlag.BUFFERED_ACTIVATE]:
 		inputSignal.emit(str(curInput), curFlags)
@@ -646,19 +686,22 @@ func are_same_motions(motion1:Array, motion2:Array):
 		if motion1.is_empty() and motion2.is_empty():
 			return true
 		return false
-	var minSize = min(motion1.size(), motion2.size())
+
 	var lastUniqueInput1:motionInput
 	var lastUniqueInput2:motionInput
 	var cleanedMotion1 = []
 	var cleanedMotion2 = []
-	for i in minSize:
-		if are_same_inputs(motion1[i], moves["Nothing"].commandInputs[0]) or are_same_inputs(motion2[i], moves["Nothing"].commandInputs[0]):
+	for input in motion1:
+		if are_same_inputs(input, moves["Nothing"].commandInputs[0]):
 			continue
-		if !are_same_inputs(motion1[i], lastUniqueInput1):
-			lastUniqueInput1 = motion1[i]
+		if !are_same_inputs(input, lastUniqueInput1):
+			lastUniqueInput1 = input
 			cleanedMotion1.append(lastUniqueInput1)
-		if !are_same_inputs(motion2[i], lastUniqueInput2):
-			lastUniqueInput2 = motion2[i]
+	for input in motion2:
+		if are_same_inputs(input, moves["Nothing"].commandInputs[0]):
+			continue
+		if !are_same_inputs(input, lastUniqueInput2):
+			lastUniqueInput2 = input
 			cleanedMotion2.append(lastUniqueInput2)
 	if lastUniqueInput1 == null or lastUniqueInput2 == null:
 		return false

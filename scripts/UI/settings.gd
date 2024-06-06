@@ -1,6 +1,8 @@
 extends Control
 
 @onready var setupPanel:PanelContainer = get_node("ControllerSetupPanel")
+@onready var masterSlider:Slider = get_node("TabContainer/Audio/VBoxContainer/MasterSlider")
+
 var setupVisible = false
 
 # Called when the node enters the scene tree for the first time.
@@ -52,10 +54,16 @@ func _on_setup_button_pressed():
 
 func _on_tab_container_tab_changed(tab):
 	setupPanel.set("visible", setupVisible and tab == 2)
-
+	masterSlider.set("value", db_to_linear(Settingspersistdata.volumeDB) * 100)
 
 func _on_resized():
 	var newScale = ProjectSettings.get("display/window/size/viewport_width") / (get_window().size.x as float)
 	get_tree().root.content_scale_factor = newScale
 	find_child("WidthText", true, true).text = str(get_window().size.x)
 	find_child("HeightText", true, true).text = str(get_window().size.y)
+
+
+func _on_master_slider_drag_ended(_value_changed):
+	var mstr = AudioServer.get_bus_index("Master")
+	Settingspersistdata.volumeDB = linear_to_db(masterSlider.get("value") / 100.0)
+	AudioServer.set_bus_volume_db(mstr, Settingspersistdata.volumeDB)
