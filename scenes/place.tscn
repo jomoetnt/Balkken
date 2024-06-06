@@ -1,13 +1,13 @@
-[gd_scene load_steps=15 format=3 uid="uid://b1pcpu1pgyter"]
+[gd_scene load_steps=24 format=3 uid="uid://b1pcpu1pgyter"]
 
 [ext_resource type="Script" path="res://scripts/place.gd" id="1_xv20c"]
 [ext_resource type="Texture2D" uid="uid://dh1c0bjqxpkmk" path="res://assets/images/1200px-Checkerboard_pattern.svg.png" id="2_fq5mu"]
 [ext_resource type="Script" path="res://scripts/Camera3D.gd" id="3_lscat"]
 [ext_resource type="PackedScene" uid="uid://dk1fcb0gq8nsf" path="res://scenes/fighters/killer_bean.tscn" id="4_ylrie"]
 [ext_resource type="Script" path="res://scripts/UI/InputDisplay.gd" id="5_5fcy6"]
+[ext_resource type="Theme" uid="uid://d4djrml06wuet" path="res://epic_theme.tres" id="5_hsa1r"]
 [ext_resource type="Script" path="res://scripts/UI/Healthbar.gd" id="6_71yoe"]
 [ext_resource type="Script" path="res://scripts/UI/PauseMenu.gd" id="7_n6725"]
-[ext_resource type="Script" path="res://scripts/UI/Manabar.gd" id="7_xv6f7"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_46q82"]
 albedo_color = Color(0.325441, 0.325441, 0.325441, 0)
@@ -29,8 +29,42 @@ albedo_color = Color(0, 0, 0, 1)
 material = SubResource("StandardMaterial3D_ymuep")
 size = Vector3(25.945, 18.91, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dd7mj"]
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cuqy1"]
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cwvnx"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fdklx"]
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.355314, 0.355314, 0.355314, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_l0gyp"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_iatxg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8qkhc"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_qgypo"]
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_6y3i4"]
 size = Vector3(1, 8.34473, 17.056)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_br2sa"]
+bg_color = Color(0.517647, 0.298039, 0.298039, 1)
 
 [node name="place" type="Node3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.994554, -0.0772501, 0.536096)
@@ -71,10 +105,16 @@ player = 2
 
 [node name="InputDisplay" type="Label" parent="HUD"]
 clip_contents = true
-offset_left = 2.0
-offset_top = 105.0
-offset_right = 715.0
-offset_bottom = 217.0
+anchors_preset = -1
+anchor_left = 0.003
+anchor_top = 0.5
+anchor_right = 0.003
+anchor_bottom = 0.5
+offset_left = -0.76
+offset_top = -340.0
+offset_right = 712.24
+offset_bottom = -228.0
+theme = ExtResource("5_hsa1r")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 26
 text = "NEUTRAL + NONE"
@@ -83,55 +123,240 @@ text_overrun_behavior = 2
 max_lines_visible = 10
 script = ExtResource("5_5fcy6")
 
-[node name="Healthbar1" type="Label" parent="HUD"]
-clip_contents = true
-offset_left = 2.0
-offset_top = 2.0
-offset_right = 715.0
-offset_bottom = 46.0
-theme_override_font_sizes/font_size = 26
-text = "Health: 0"
-text_overrun_behavior = 2
-max_lines_visible = 10
+[node name="Healthbar1" type="PanelContainer" parent="HUD"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -770.0
+offset_top = 50.0
+offset_right = -70.0
+offset_bottom = 90.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("5_hsa1r")
+theme_override_styles/panel = SubResource("StyleBoxFlat_dd7mj")
 script = ExtResource("6_71yoe")
 
-[node name="Healthbar2" type="Label" parent="HUD"]
-clip_contents = true
-offset_left = 1205.0
-offset_top = 2.0
-offset_right = 1918.0
-offset_bottom = 46.0
-theme_override_font_sizes/font_size = 26
-text = "Health: 0"
-horizontal_alignment = 2
-text_overrun_behavior = 2
-max_lines_visible = 10
+[node name="ColorRect" type="ColorRect" parent="HUD/Healthbar1"]
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+color = Color(0, 1, 0, 1)
+
+[node name="Healthbar2" type="PanelContainer" parent="HUD"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 70.0
+offset_top = 50.0
+offset_right = 770.0
+offset_bottom = 90.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("5_hsa1r")
+theme_override_styles/panel = SubResource("StyleBoxFlat_cuqy1")
 script = ExtResource("6_71yoe")
 player = 2
 
-[node name="Manabar1" type="Label" parent="HUD"]
-clip_contents = true
-offset_left = 2.0
-offset_top = 44.0
-offset_right = 715.0
-offset_bottom = 88.0
-theme_override_font_sizes/font_size = 26
-text = "Mana: 0"
-text_overrun_behavior = 2
-max_lines_visible = 10
-script = ExtResource("7_xv6f7")
+[node name="ColorRect" type="ColorRect" parent="HUD/Healthbar2"]
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+color = Color(0, 1, 0, 1)
 
-[node name="Manabar2" type="Label" parent="HUD"]
-clip_contents = true
-offset_left = 1205.0
-offset_top = 44.0
-offset_right = 1918.0
-offset_bottom = 88.0
-theme_override_font_sizes/font_size = 26
-text = "Mana: 0"
+[node name="Manabar1" type="PanelContainer" parent="HUD"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -570.0
+offset_top = 100.0
+offset_right = -70.0
+offset_bottom = 130.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("5_hsa1r")
+theme_override_styles/panel = SubResource("StyleBoxFlat_dd7mj")
+script = ExtResource("6_71yoe")
+
+[node name="ColorRect" type="ColorRect" parent="HUD/Manabar1"]
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+color = Color(0, 0.443137, 1, 1)
+
+[node name="Manabar2" type="PanelContainer" parent="HUD"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 70.0
+offset_top = 100.0
+offset_right = 570.0
+offset_bottom = 130.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("5_hsa1r")
+theme_override_styles/panel = SubResource("StyleBoxFlat_cuqy1")
+script = ExtResource("6_71yoe")
+player = 2
+
+[node name="ColorRect" type="ColorRect" parent="HUD/Manabar2"]
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+color = Color(0, 0.443137, 1, 1)
+
+[node name="Clock" type="PanelContainer" parent="HUD"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -70.0
+offset_top = 30.0
+offset_right = 70.0
+offset_bottom = 130.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_cwvnx")
+
+[node name="Label" type="Label" parent="HUD/Clock"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 72
+text = "120"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="Rounds1" type="HBoxContainer" parent="HUD"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -130.0
+offset_top = 15.0
+offset_right = -70.0
+offset_bottom = 40.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("5_hsa1r")
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Round1" type="PanelContainer" parent="HUD/Rounds1"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+theme_override_styles/panel = SubResource("StyleBoxFlat_fdklx")
+
+[node name="ColorRect" type="ColorRect" parent="HUD/Rounds1/Round1"]
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+color = Color(1, 1, 0, 0)
+
+[node name="Round2" type="PanelContainer" parent="HUD/Rounds1"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+theme_override_styles/panel = SubResource("StyleBoxFlat_fdklx")
+
+[node name="ColorRect" type="ColorRect" parent="HUD/Rounds1/Round2"]
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+color = Color(1, 1, 0, 0)
+
+[node name="Rounds2" type="HBoxContainer" parent="HUD"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 70.0
+offset_top = 15.0
+offset_right = 130.0
+offset_bottom = 40.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("5_hsa1r")
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Round1" type="PanelContainer" parent="HUD/Rounds2"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+theme_override_styles/panel = SubResource("StyleBoxFlat_fdklx")
+
+[node name="ColorRect" type="ColorRect" parent="HUD/Rounds2/Round1"]
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+color = Color(1, 1, 0, 0)
+
+[node name="Round2" type="PanelContainer" parent="HUD/Rounds2"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+theme_override_styles/panel = SubResource("StyleBoxFlat_fdklx")
+
+[node name="ColorRect" type="ColorRect" parent="HUD/Rounds2/Round2"]
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+color = Color(1, 1, 0, 0)
+
+[node name="Icon1" type="PanelContainer" parent="HUD"]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 180.0
+offset_bottom = 130.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("5_hsa1r")
+theme_override_styles/panel = SubResource("StyleBoxEmpty_l0gyp")
+
+[node name="ColorRect" type="TextureRect" parent="HUD/Icon1"]
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+texture = SubResource("PlaceholderTexture2D_iatxg")
+
+[node name="Icon2" type="PanelContainer" parent="HUD"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -180.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 130.0
+grow_horizontal = 0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("5_hsa1r")
+theme_override_styles/panel = SubResource("StyleBoxEmpty_8qkhc")
+
+[node name="ColorRect" type="TextureRect" parent="HUD/Icon2"]
+layout_mode = 2
+theme = ExtResource("5_hsa1r")
+texture = SubResource("PlaceholderTexture2D_qgypo")
+
+[node name="Nametag1" type="Label" parent="HUD"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -770.0
+offset_top = 11.0
+offset_right = -490.0
+offset_bottom = 45.0
+grow_horizontal = 2
+theme = ExtResource("5_hsa1r")
+theme_override_font_sizes/font_size = 24
+text = "Killer Bean"
+
+[node name="Nametag2" type="Label" parent="HUD"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 490.0
+offset_top = 11.0
+offset_right = 770.0
+offset_bottom = 45.0
+grow_horizontal = 2
+theme = ExtResource("5_hsa1r")
+theme_override_font_sizes/font_size = 24
+text = "Killer Bean"
 horizontal_alignment = 2
-text_overrun_behavior = 2
-max_lines_visible = 10
 
 [node name="InvisibleWalls" type="StaticBody3D" parent="."]
 
@@ -149,38 +374,64 @@ script = ExtResource("7_n6725")
 
 [node name="Shade" type="ColorRect" parent="PauseMenu"]
 self_modulate = Color(0, 0, 0, 1)
-offset_right = 1920.0
-offset_bottom = 1080.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 color = Color(0.129558, 0.129558, 0.129558, 0.227451)
 
-[node name="OptionMenu" type="VBoxContainer" parent="PauseMenu/Shade"]
-layout_mode = 0
-offset_left = 236.0
-offset_top = 156.0
-offset_right = 1017.0
-offset_bottom = 395.0
+[node name="PanelContainer" type="PanelContainer" parent="PauseMenu/Shade"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.469
+anchor_right = 0.5
+anchor_bottom = 0.469
+offset_left = -560.0
+offset_top = -306.52
+offset_right = -160.0
+offset_bottom = -0.52002
+theme_override_styles/panel = SubResource("StyleBoxFlat_br2sa")
+
+[node name="MarginContainer" type="MarginContainer" parent="PauseMenu/Shade/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="OptionMenu" type="VBoxContainer" parent="PauseMenu/Shade/PanelContainer/MarginContainer"]
+layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="ResumeButton" type="Button" parent="PauseMenu/Shade/OptionMenu"]
+[node name="Label" type="Label" parent="PauseMenu/Shade/PanelContainer/MarginContainer/OptionMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Paused"
+
+[node name="ResumeButton" type="Button" parent="PauseMenu/Shade/PanelContainer/MarginContainer/OptionMenu"]
 layout_mode = 2
 theme_override_constants/outline_size = 0
 theme_override_font_sizes/font_size = 36
 text = "Resume"
 alignment = 0
 
-[node name="MoveListButton" type="Button" parent="PauseMenu/Shade/OptionMenu"]
+[node name="MoveListButton" type="Button" parent="PauseMenu/Shade/PanelContainer/MarginContainer/OptionMenu"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Move List"
 alignment = 0
 
-[node name="SettingsButton" type="Button" parent="PauseMenu/Shade/OptionMenu"]
+[node name="SettingsButton" type="Button" parent="PauseMenu/Shade/PanelContainer/MarginContainer/OptionMenu"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Settings"
 alignment = 0
 
-[node name="ExitMatchButton" type="Button" parent="PauseMenu/Shade/OptionMenu"]
+[node name="ExitMatchButton" type="Button" parent="PauseMenu/Shade/PanelContainer/MarginContainer/OptionMenu"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Exit Match"
@@ -188,3 +439,8 @@ alignment = 0
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 volume_db = -22.0
+
+[node name="Timer" type="Timer" parent="."]
+one_shot = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

@@ -1,0 +1,408 @@
+[gd_scene load_steps=5 format=3 uid="uid://b7xvhdjcxm7p7"]
+
+[ext_resource type="Script" path="res://scripts/UI/settings.gd" id="1_44r4j"]
+[ext_resource type="Theme" uid="uid://d4djrml06wuet" path="res://epic_theme.tres" id="1_qn3jc"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_2p3x6"]
+size = Vector2(875, 200)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_1o2s5"]
+size = Vector2(875, 200)
+
+[node name="settings" type="ColorRect"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("1_qn3jc")
+color = Color(0.306923, 0.306923, 0.306923, 1)
+script = ExtResource("1_44r4j")
+
+[node name="TabContainer" type="TabContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 62.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_qn3jc")
+theme_override_constants/icon_max_width = 0
+theme_override_font_sizes/font_size = 24
+
+[node name="Video" type="MarginContainer" parent="TabContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_constants/margin_left = 45
+theme_override_constants/margin_right = 45
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TabContainer/Video"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_constants/separation = 1
+
+[node name="HSeparator2" type="HSeparator" parent="TabContainer/Video/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_constants/separation = 35
+
+[node name="Label" type="Label" parent="TabContainer/Video/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme = ExtResource("1_qn3jc")
+theme_override_font_sizes/font_size = 36
+text = "Resolution"
+
+[node name="HSeparator5" type="HSeparator" parent="TabContainer/Video/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_constants/separation = 35
+
+[node name="HSplitContainer" type="HSplitContainer" parent="TabContainer/Video/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+split_offset = 905
+
+[node name="MarginContainer" type="VBoxContainer" parent="TabContainer/Video/VBoxContainer/HSplitContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+
+[node name="Label" type="Label" parent="TabContainer/Video/VBoxContainer/HSplitContainer/MarginContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_font_sizes/font_size = 36
+text = "Width"
+
+[node name="WidthText" type="LineEdit" parent="TabContainer/Video/VBoxContainer/HSplitContainer/MarginContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_font_sizes/font_size = 32
+text = "1920"
+placeholder_text = "1920"
+
+[node name="MarginContainer2" type="VBoxContainer" parent="TabContainer/Video/VBoxContainer/HSplitContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+
+[node name="Label" type="Label" parent="TabContainer/Video/VBoxContainer/HSplitContainer/MarginContainer2"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_font_sizes/font_size = 36
+text = "Height"
+
+[node name="HeightText" type="LineEdit" parent="TabContainer/Video/VBoxContainer/HSplitContainer/MarginContainer2"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_font_sizes/font_size = 32
+text = "1080"
+placeholder_text = "1080"
+
+[node name="HSeparator" type="HSeparator" parent="TabContainer/Video/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_constants/separation = 35
+
+[node name="Label2" type="Label" parent="TabContainer/Video/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_font_sizes/font_size = 36
+text = "V-Sync"
+
+[node name="VsyncButton" type="OptionButton" parent="TabContainer/Video/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_font_sizes/font_size = 24
+item_count = 2
+selected = 0
+popup/item_0/text = "Enabled"
+popup/item_0/id = 0
+popup/item_1/text = "Disabled"
+popup/item_1/id = 1
+
+[node name="HSeparator3" type="HSeparator" parent="TabContainer/Video/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_constants/separation = 35
+
+[node name="Label3" type="Label" parent="TabContainer/Video/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_font_sizes/font_size = 36
+text = "Mode"
+
+[node name="ModeButton" type="OptionButton" parent="TabContainer/Video/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_font_sizes/font_size = 24
+item_count = 3
+selected = 0
+popup/item_0/text = "Windowed"
+popup/item_0/id = 0
+popup/item_1/text = "Fullscreen"
+popup/item_1/id = 1
+popup/item_2/text = "Borderless"
+popup/item_2/id = 3
+
+[node name="HSeparator4" type="HSeparator" parent="TabContainer/Video/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+theme_override_constants/separation = 35
+
+[node name="Audio" type="MarginContainer" parent="TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 45
+theme_override_constants/margin_right = 45
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TabContainer/Audio"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="HSeparator2" type="HSeparator" parent="TabContainer/Audio/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 35
+
+[node name="Label" type="Label" parent="TabContainer/Audio/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Master"
+
+[node name="TextEdit" type="HSlider" parent="TabContainer/Audio/VBoxContainer"]
+layout_mode = 2
+value = 70.0
+
+[node name="HSeparator" type="HSeparator" parent="TabContainer/Audio/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 35
+
+[node name="Label2" type="Label" parent="TabContainer/Audio/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Sound Effects"
+
+[node name="TextEdit2" type="HSlider" parent="TabContainer/Audio/VBoxContainer"]
+layout_mode = 2
+value = 70.0
+
+[node name="HSeparator3" type="HSeparator" parent="TabContainer/Audio/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 35
+
+[node name="Label3" type="Label" parent="TabContainer/Audio/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Voicelines"
+
+[node name="TextEdit3" type="HSlider" parent="TabContainer/Audio/VBoxContainer"]
+layout_mode = 2
+value = 70.0
+
+[node name="HSeparator4" type="HSeparator" parent="TabContainer/Audio/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 35
+
+[node name="Label4" type="Label" parent="TabContainer/Audio/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Music"
+
+[node name="TextEdit4" type="HSlider" parent="TabContainer/Audio/VBoxContainer"]
+layout_mode = 2
+value = 70.0
+
+[node name="HSeparator5" type="HSeparator" parent="TabContainer/Audio/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 35
+
+[node name="Input" type="MarginContainer" parent="TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 45
+theme_override_constants/margin_right = 45
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TabContainer/Input"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="HSeparator2" type="HSeparator" parent="TabContainer/Input/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 35
+
+[node name="Label" type="Label" parent="TabContainer/Input/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Input Buffer Size"
+
+[node name="TextEdit" type="HSlider" parent="TabContainer/Input/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+max_value = 15.0
+value = 7.0
+rounded = true
+tick_count = 16
+ticks_on_borders = true
+
+[node name="HSeparator" type="HSeparator" parent="TabContainer/Input/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 35
+
+[node name="Label2" type="Label" parent="TabContainer/Input/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Keybind Profiles"
+
+[node name="ProfilesButton" type="Button" parent="TabContainer/Input/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Modify"
+alignment = 0
+
+[node name="HSeparator3" type="HSeparator" parent="TabContainer/Input/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 35
+
+[node name="Label3" type="Label" parent="TabContainer/Input/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Controller Setup"
+
+[node name="SetupButton" type="Button" parent="TabContainer/Input/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Modify"
+alignment = 0
+
+[node name="HSeparator4" type="HSeparator" parent="TabContainer/Input/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 35
+
+[node name="TopBar" type="MarginContainer" parent="."]
+layout_mode = 1
+offset_right = 1920.0
+offset_bottom = 44.0
+theme = ExtResource("1_qn3jc")
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TopBar"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+
+[node name="BackButton" type="Button" parent="TopBar/HBoxContainer"]
+layout_mode = 2
+theme = ExtResource("1_qn3jc")
+text = "Go back"
+
+[node name="ControllerSetupPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 621.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="ControllerSetupPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ControllerSetupPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ControllerSetupPanel/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(875, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="ControllerSetupPanel/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Player 1"
+
+[node name="OptionButton" type="Button" parent="ControllerSetupPanel/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Select Controller"
+
+[node name="HSeparator4" type="HSeparator" parent="ControllerSetupPanel/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 35
+
+[node name="Label2" type="Label" parent="ControllerSetupPanel/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Keyboard"
+
+[node name="OptionButton2" type="OptionButton" parent="ControllerSetupPanel/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+item_count = 2
+selected = 0
+popup/item_0/text = "Enabled"
+popup/item_0/id = 0
+popup/item_1/text = "Disabled"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="ControllerSetupPanel/MarginContainer/HBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+texture = SubResource("PlaceholderTexture2D_2p3x6")
+expand_mode = 3
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="ControllerSetupPanel/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(875, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="ControllerSetupPanel/MarginContainer/HBoxContainer/VBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Player 2"
+
+[node name="OptionButton" type="Button" parent="ControllerSetupPanel/MarginContainer/HBoxContainer/VBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Select Controller"
+
+[node name="HSeparator4" type="HSeparator" parent="ControllerSetupPanel/MarginContainer/HBoxContainer/VBoxContainer2"]
+layout_mode = 2
+theme_override_constants/separation = 35
+
+[node name="Label2" type="Label" parent="ControllerSetupPanel/MarginContainer/HBoxContainer/VBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Keyboard"
+
+[node name="OptionButton2" type="OptionButton" parent="ControllerSetupPanel/MarginContainer/HBoxContainer/VBoxContainer2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+item_count = 2
+selected = 1
+popup/item_0/text = "Enabled"
+popup/item_0/id = 0
+popup/item_1/text = "Disabled"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="ControllerSetupPanel/MarginContainer/HBoxContainer/VBoxContainer2"]
+layout_mode = 2
+texture = SubResource("PlaceholderTexture2D_1o2s5")
+
+[connection signal="resized" from="." to="." method="_on_resized"]
+[connection signal="tab_changed" from="TabContainer" to="." method="_on_tab_container_tab_changed"]
+[connection signal="text_submitted" from="TabContainer/Video/VBoxContainer/HSplitContainer/MarginContainer/WidthText" to="." method="_on_width_text_text_submitted"]
+[connection signal="text_submitted" from="TabContainer/Video/VBoxContainer/HSplitContainer/MarginContainer2/HeightText" to="." method="_on_height_text_text_submitted"]
+[connection signal="item_selected" from="TabContainer/Video/VBoxContainer/VsyncButton" to="." method="_on_vsync_button_item_selected"]
+[connection signal="item_selected" from="TabContainer/Video/VBoxContainer/ModeButton" to="." method="_on_mode_button_item_selected"]
+[connection signal="pressed" from="TabContainer/Input/VBoxContainer/ProfilesButton" to="." method="_on_profiles_button_pressed"]
+[connection signal="pressed" from="TabContainer/Input/VBoxContainer/SetupButton" to="." method="_on_setup_button_pressed"]
+[connection signal="pressed" from="TopBar/HBoxContainer/BackButton" to="." method="_on_button_pressed"]

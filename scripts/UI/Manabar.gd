@@ -1,4 +1,4 @@
-extends Label
+extends PanelContainer
 
 var fighterName = "../../KillerBean"
 var fighterNode
@@ -11,7 +11,5 @@ func _ready():
 		fighterName = fighterName + "2"
 	fighterNode = get_node(fighterName)
 
-
-# temporary
 func _process(_delta):
 	text = "curMove: " + str(fighterNode.curMove)

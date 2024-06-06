@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://2e3y5cwhgo62"]
+[gd_scene load_steps=3 format=3 uid="uid://2e3y5cwhgo62"]
 
 [ext_resource type="Script" path="res://scripts/UI/main_menu.gd" id="1_4hyve"]
+[ext_resource type="Theme" uid="uid://d4djrml06wuet" path="res://epic_theme.tres" id="2_ah1iu"]
 
 [node name="MainMenu" type="MarginContainer"]
 anchors_preset = 15
@@ -8,6 +9,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/margin_left = 120
 theme_override_constants/margin_top = 80
 theme_override_constants/margin_right = 120
@@ -16,31 +19,37 @@ script = ExtResource("1_4hyve")
 
 [node name="VSplitContainer" type="VSplitContainer" parent="."]
 layout_mode = 2
-split_offset = 155
+theme = ExtResource("2_ah1iu")
+split_offset = 195
 
 [node name="RichTextLabel" type="RichTextLabel" parent="VSplitContainer"]
 layout_mode = 2
+theme = ExtResource("2_ah1iu")
 theme_override_font_sizes/normal_font_size = 101
 text = "Balkken"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="VSplitContainer"]
 layout_mode = 2
+theme = ExtResource("2_ah1iu")
 theme_override_constants/separation = 1
 
 [node name="PlayButton" type="Button" parent="VSplitContainer/VBoxContainer"]
 layout_mode = 2
+theme = ExtResource("2_ah1iu")
 theme_override_font_sizes/font_size = 46
 text = "Play"
 alignment = 0
 
 [node name="SettingsButton" type="Button" parent="VSplitContainer/VBoxContainer"]
 layout_mode = 2
+theme = ExtResource("2_ah1iu")
 theme_override_font_sizes/font_size = 46
 text = "Settings"
 alignment = 0
 
 [node name="QuitButton" type="Button" parent="VSplitContainer/VBoxContainer"]
 layout_mode = 2
+theme = ExtResource("2_ah1iu")
 theme_override_font_sizes/font_size = 46
 text = "Quit"
 alignment = 0

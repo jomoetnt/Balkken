@@ -4,10 +4,10 @@ var buttons = {}
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	buttons["Resume"] = get_node("Shade/OptionMenu/ResumeButton")
-	buttons["Move List"] = get_node("Shade/OptionMenu/MoveListButton")
-	buttons["Settings"] = get_node("Shade/OptionMenu/SettingsButton")
-	buttons["Exit Match"] = get_node("Shade/OptionMenu/ExitMatchButton")
+	buttons["Resume"] = get_node("Shade/PanelContainer/MarginContainer/OptionMenu/ResumeButton")
+	buttons["Move List"] = get_node("Shade/PanelContainer/MarginContainer/OptionMenu/MoveListButton")
+	buttons["Settings"] = get_node("Shade/PanelContainer/MarginContainer/OptionMenu/SettingsButton")
+	buttons["Exit Match"] = get_node("Shade/PanelContainer/MarginContainer/OptionMenu/ExitMatchButton")
 	buttons["Resume"].pressed.connect(_resume)
 	buttons["Move List"].pressed.connect(_show_movelist)
 	buttons["Settings"].pressed.connect(_open_settings)
@@ -25,7 +25,8 @@ func _show_movelist():
 	pass
 
 func _open_settings():
-	pass
+	var settingsNode = preload("res://scenes/settings.tscn").instantiate()
+	add_child(settingsNode)
 
 func _exit_match():
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")

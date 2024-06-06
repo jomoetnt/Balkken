@@ -1,0 +1,436 @@
+[gd_scene load_steps=4 format=3 uid="uid://ee0ssvy6m5w1"]
+
+[ext_resource type="Theme" uid="uid://d4djrml06wuet" path="res://epic_theme.tres" id="1_35k3s"]
+[ext_resource type="Script" path="res://scripts/UI/profiles.gd" id="1_y5rw1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b0pwq"]
+bg_color = Color(0.466181, 0.466181, 0.466181, 1)
+
+[node name="profiles" type="PanelContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("1_35k3s")
+theme_override_styles/panel = SubResource("StyleBoxFlat_b0pwq")
+script = ExtResource("1_y5rw1")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="HSplitContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="ActionList" type="VBoxContainer" parent="MarginContainer/HSplitContainer"]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("1_35k3s")
+theme_override_constants/separation = 5
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+
+[node name="Label" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 48
+text = "Action"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+
+[node name="Label2" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Light Punch"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Label3" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Heavy Punch"
+horizontal_alignment = 1
+
+[node name="Label4" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Light Kick"
+horizontal_alignment = 1
+
+[node name="Label5" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Heavy Kick"
+horizontal_alignment = 1
+
+[node name="Label6" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Up"
+horizontal_alignment = 1
+
+[node name="Label7" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Down"
+horizontal_alignment = 1
+
+[node name="Label8" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Left"
+horizontal_alignment = 1
+
+[node name="Label9" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Right"
+horizontal_alignment = 1
+
+[node name="Label10" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Throw"
+horizontal_alignment = 1
+
+[node name="Label11" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Throw Swap"
+horizontal_alignment = 1
+
+[node name="Label12" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "HD"
+horizontal_alignment = 1
+
+[node name="Label13" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Ultimate Ignition"
+horizontal_alignment = 1
+
+[node name="Label14" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Taunt 1"
+horizontal_alignment = 1
+
+[node name="Label15" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Taunt 2"
+horizontal_alignment = 1
+
+[node name="Label16" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Start"
+horizontal_alignment = 1
+
+[node name="Label17" type="Label" parent="MarginContainer/HSplitContainer/ActionList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 28
+text = "Display Inputs"
+horizontal_alignment = 1
+
+[node name="VSeparator2" type="VSeparator" parent="MarginContainer/HSplitContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+
+[node name="KeyList" type="VBoxContainer" parent="MarginContainer/HSplitContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("1_35k3s")
+theme_override_constants/separation = 5
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+
+[node name="Label" type="Label" parent="MarginContainer/HSplitContainer/KeyList"]
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 48
+text = "Key"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+
+[node name="Button" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "A"
+
+[node name="Button2" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "X"
+
+[node name="Button3" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "B"
+
+[node name="Button4" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "Y"
+
+[node name="Button5" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "Key"
+
+[node name="Button6" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "Key"
+
+[node name="Button7" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "Key"
+
+[node name="Button8" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "Key"
+
+[node name="Button9" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "LB"
+
+[node name="Button10" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "RB"
+
+[node name="Button11" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "LT"
+
+[node name="Button12" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "RT"
+
+[node name="Button13" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "Key"
+
+[node name="Button14" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "Key"
+
+[node name="Button15" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "Start"
+
+[node name="Button16" type="Button" parent="MarginContainer/HSplitContainer/KeyList"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+text = "Select"
+
+[node name="VSeparator" type="VSeparator" parent="MarginContainer/HSplitContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+
+[node name="ColorRect" type="ColorRect" parent="MarginContainer/HSplitContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("1_35k3s")
+color = Color(0.310617, 0.310617, 0.310617, 1)
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="MarginContainer/HSplitContainer/ColorRect"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_35k3s")
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/HSplitContainer/ColorRect/VBoxContainer3"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+
+[node name="Label" type="Label" parent="MarginContainer/HSplitContainer/ColorRect/VBoxContainer3"]
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 36
+text = "Profile"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/HSplitContainer/ColorRect/VBoxContainer3"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+
+[node name="OptionButton" type="OptionButton" parent="MarginContainer/HSplitContainer/ColorRect/VBoxContainer3"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 24
+item_count = 1
+selected = 0
+popup/item_0/text = "Default"
+popup/item_0/id = 0
+
+[node name="Button" type="Button" parent="MarginContainer/HSplitContainer/ColorRect/VBoxContainer3"]
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 18
+text = "Add New Profile"
+
+[node name="Button2" type="Button" parent="MarginContainer/HSplitContainer/ColorRect/VBoxContainer3"]
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 18
+text = "Edit Profile"
+
+[node name="VSplitContainer" type="VSplitContainer" parent="MarginContainer/HSplitContainer"]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("1_35k3s")
+split_offset = 70
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HSplitContainer/VSplitContainer"]
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/HSplitContainer/VSplitContainer/MarginContainer"]
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_constants/separation = 50
+
+[node name="DiscardButton" type="Button" parent="MarginContainer/HSplitContainer/VSplitContainer/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 20
+text = "Discard"
+
+[node name="SaveButton" type="Button" parent="MarginContainer/HSplitContainer/VSplitContainer/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 20
+text = "Save"
+
+[node name="ExitButton" type="Button" parent="MarginContainer/HSplitContainer/VSplitContainer/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+theme_override_font_sizes/font_size = 20
+text = "Exit"
+
+[node name="TextureRect" type="TextureRect" parent="MarginContainer/HSplitContainer/VSplitContainer"]
+layout_mode = 2
+theme = ExtResource("1_35k3s")
+
+[connection signal="pressed" from="MarginContainer/HSplitContainer/VSplitContainer/MarginContainer/HBoxContainer/SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="pressed" from="MarginContainer/HSplitContainer/VSplitContainer/MarginContainer/HBoxContainer/ExitButton" to="." method="_on_exit_button_pressed"]

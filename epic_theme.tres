@@ -1,0 +1,7 @@
+[gd_resource type="Theme" load_steps=2 format=3 uid="uid://d4djrml06wuet"]
+
+[ext_resource type="FontFile" uid="uid://btv4wqqtyyqe" path="res://FilthyBassline-JlJo.ttf" id="1_lhst3"]
+
+[resource]
+default_font = ExtResource("1_lhst3")
+default_font_size = 20

@@ -20,7 +20,8 @@ func _play():
 	get_tree().change_scene_to_file("res://scenes/place.tscn")
 	
 func _open_settings():
-	pass
+	var settingsNode = preload("res://scenes/settings.tscn").instantiate()
+	add_child(settingsNode)
 	
 func _quit_game():
 	get_tree().quit()
